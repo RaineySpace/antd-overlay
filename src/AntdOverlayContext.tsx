@@ -28,11 +28,15 @@
  * }
  */
 
+import { DrawerProps, ModalProps } from 'antd';
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 // ============================================================================
 // 类型定义
 // ============================================================================
+
+export type DefaultModalProps = Partial<ModalProps>;
+export type DefaultDrawerProps = Partial<DrawerProps>;
 
 /**
  * AntdOverlay Context 的值类型
@@ -48,6 +52,10 @@ interface AntdOverlayContextValue {
   addHolder: (holder: React.ReactNode) => void;
   /** 从全局容器移除 holder */
   removeHolder: (holder: React.ReactNode) => void;
+  /** 默认 Modal 属性 */
+  defaultModalProps?: DefaultModalProps;
+  /** 默认 Drawer 属性 */
+  defaultDrawerProps?: DefaultDrawerProps;
 }
 
 // ============================================================================
@@ -108,7 +116,28 @@ const AntdOverlayContext = createContext<AntdOverlayContextValue | null>(null);
  *   );
  * }
  */
-export function AntdOverlayProvider({ children }: { children: React.ReactNode }) {
+export interface AntdOverlayProviderProps {
+  /** 子节点 */
+  children: React.ReactNode;
+  /** 默认 Modal 属性 */
+  defaultModalProps?: DefaultModalProps;
+  /** 默认 Drawer 属性 */
+  defaultDrawerProps?: DefaultDrawerProps;
+}
+
+
+/**
+ * AntdOverlayProvider 组件
+ * @param children - 子节点
+ * @param defaultModalProps - 默认 Modal 属性
+ * @param defaultDrawerProps - 默认 Drawer 属性
+ * @returns React.ReactNode
+ */
+export function AntdOverlayProvider({
+  children,
+  defaultModalProps,
+  defaultDrawerProps,
+}: AntdOverlayProviderProps) {
   // 存储所有已注册的 holder 节点
   const [holders, setHolders] = useState<React.ReactNode[]>([]);
 
@@ -135,8 +164,8 @@ export function AntdOverlayProvider({ children }: { children: React.ReactNode })
   // 使用 useMemo 优化 Context 值，避免不必要的重渲染
   // 只有当 holders、addHolder 或 removeHolder 变化时才会创建新的值对象
   const value = useMemo(
-    () => ({ holders, addHolder, removeHolder }),
-    [holders, addHolder, removeHolder],
+    () => ({ holders, addHolder, removeHolder, defaultModalProps, defaultDrawerProps }),
+    [holders, addHolder, removeHolder, defaultModalProps, defaultDrawerProps],
   );
 
   return (
@@ -168,7 +197,11 @@ export function AntdOverlayProvider({ children }: { children: React.ReactNode })
  * @example
  * // 库内部使用示例（useGlobalOverlay 的实现）
  * function useGlobalOverlay(Component, options) {
- *   const { addHolder, removeHolder } = useAntdOverlayContext();
+ *   const context = useAntdOverlayContext();
+ *   if (!context) {
+ *     throw new Error('useGlobalOverlay must be used within an AntdOverlayProvider. Please wrap your application with <AntdOverlayProvider>.');
+ *   }
+ *   const { addHolder, removeHolder } = context;
  *   const [open, holder] = useOverlay(Component, options);
  *
  *   useEffect(() => {
@@ -180,14 +213,5 @@ export function AntdOverlayProvider({ children }: { children: React.ReactNode })
  * }
  */
 export function useAntdOverlayContext() {
-  const context = useContext(AntdOverlayContext);
-
-  if (!context) {
-    throw new Error(
-      'useAntdOverlayContext must be used within an AntdOverlayProvider. ' +
-        'Please wrap your application with <AntdOverlayProvider>.',
-    );
-  }
-
-  return context;
+  return useContext(AntdOverlayContext);
 }

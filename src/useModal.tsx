@@ -24,6 +24,7 @@
 import { ModalProps } from 'antd';
 import { useMemo } from 'react';
 
+import { useAntdOverlayContext, DefaultModalProps } from './AntdOverlayContext';
 import {
   CustomOverlayProps,
   OverlayOpener,
@@ -72,15 +73,18 @@ export type UseModalOptions = Omit<
  * 3. 包装 customOk 以实现自动关闭
  *
  * @template T - Modal 组件的属性类型
+ * @param defaultProps - 默认 Modal 属性
  * @returns 属性适配器函数
  */
-const createModalPropsAdapter = <T extends CustomModalProps>() => {
+const createModalPropsAdapter = <T extends CustomModalProps>(
+  defaultProps?: DefaultModalProps,
+) => {
   return (
     props: Omit<T, 'customClose'> | undefined,
     state: { open: boolean; onClose: () => void; onAnimationEnd: () => void },
   ): T => {
     const result = {
-      maskClosable: false, // 默认禁止点击遮罩关闭
+      ...defaultProps,
       ...props,
       open: state.open,
       customClose: state.onClose,
@@ -139,7 +143,11 @@ export function useModal<T extends CustomModalProps>(
   ModalComponent: React.FC<T>,
   options?: UseModalOptions,
 ): [OverlayOpener<T>, React.ReactNode] {
-  const propsAdapter = useMemo(() => createModalPropsAdapter<T>(), []);
+  const context = useAntdOverlayContext();
+  const propsAdapter = useMemo(
+    () => createModalPropsAdapter<T>(context?.defaultModalProps),
+    [context?.defaultModalProps],
+  );
   return useOverlay(ModalComponent, {
     ...options,
     keyPrefix: 'use-modal',
@@ -177,7 +185,11 @@ export function useGlobalModal<T extends CustomModalProps>(
   ModalComponent: React.FC<T>,
   options?: UseModalOptions,
 ): OverlayOpener<T> {
-  const propsAdapter = useMemo(() => createModalPropsAdapter<T>(), []);
+  const context = useAntdOverlayContext();
+  const propsAdapter = useMemo(
+    () => createModalPropsAdapter<T>(context?.defaultModalProps),
+    [context?.defaultModalProps],
+  );
   return useGlobalOverlay(ModalComponent, {
     ...options,
     keyPrefix: 'use-modal',

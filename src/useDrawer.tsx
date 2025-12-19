@@ -24,6 +24,7 @@
 import { DrawerProps } from 'antd';
 import { useMemo } from 'react';
 
+import { useAntdOverlayContext, DefaultDrawerProps } from './AntdOverlayContext';
 import {
   CustomOverlayProps,
   OverlayOpener,
@@ -72,20 +73,19 @@ export type UseDrawerOptions = Omit<
  * 2. 包装 afterOpenChange 以处理动画结束
  * 3. 包装 customOk 以实现自动关闭
  *
- * 与 Modal 的区别：
- * - Modal 使用 afterClose 回调（仅在关闭后触发）
- * - Drawer 使用 afterOpenChange 回调（打开和关闭都会触发，需要判断状态）
- *
  * @template T - Drawer 组件的属性类型
+ * @param defaultProps - 默认 Drawer 属性
  * @returns 属性适配器函数
  */
-const createDrawerPropsAdapter = <T extends CustomDrawerProps>() => {
+const createDrawerPropsAdapter = <T extends CustomDrawerProps>(
+  defaultProps?: DefaultDrawerProps,
+) => {
   return (
     props: Omit<T, 'customClose'> | undefined,
     state: { open: boolean; onClose: () => void; onAnimationEnd: () => void },
   ): T => {
     const result = {
-      maskClosable: false, // 默认禁止点击遮罩关闭
+      ...defaultProps,
       ...props,
       open: state.open,
       customClose: state.onClose,
@@ -144,7 +144,11 @@ export function useDrawer<T extends CustomDrawerProps>(
   DrawerComponent: React.FC<T>,
   options?: UseDrawerOptions,
 ): [OverlayOpener<T>, React.ReactNode] {
-  const propsAdapter = useMemo(() => createDrawerPropsAdapter<T>(), []);
+  const context = useAntdOverlayContext();
+  const propsAdapter = useMemo(
+    () => createDrawerPropsAdapter<T>(context?.defaultDrawerProps),
+    [context?.defaultDrawerProps],
+  );
   return useOverlay(DrawerComponent, {
     ...options,
     keyPrefix: 'use-drawer',
@@ -182,7 +186,11 @@ export function useGlobalDrawer<T extends CustomDrawerProps>(
   DrawerComponent: React.FC<T>,
   options?: UseDrawerOptions,
 ): OverlayOpener<T> {
-  const propsAdapter = useMemo(() => createDrawerPropsAdapter<T>(), []);
+  const context = useAntdOverlayContext();
+  const propsAdapter = useMemo(
+    () => createDrawerPropsAdapter<T>(context?.defaultDrawerProps),
+    [context?.defaultDrawerProps],
+  );
   return useGlobalOverlay(DrawerComponent, {
     ...options,
     keyPrefix: 'use-drawer',

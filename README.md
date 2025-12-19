@@ -125,8 +125,21 @@ function GlobalUsage() {
 
 全局覆盖层容器，使用 `useGlobalModal`、`useGlobalDrawer`、`useGlobalOverlay` 时需要在应用外层包裹。
 
+**属性：**
+- `children: React.ReactNode` - 子节点
+- `defaultModalProps?: Partial<ModalProps>` - 默认 Modal 属性，会应用到所有 Modal
+- `defaultDrawerProps?: Partial<DrawerProps>` - 默认 Drawer 属性，会应用到所有 Drawer
+
 ```tsx
 <AntdOverlayProvider>
+  <App />
+</AntdOverlayProvider>
+
+// 或设置默认属性
+<AntdOverlayProvider
+  defaultModalProps={{ centered: true, maskClosable: false }}
+  defaultDrawerProps={{ width: 600 }}
+>
   <App />
 </AntdOverlayProvider>
 ```

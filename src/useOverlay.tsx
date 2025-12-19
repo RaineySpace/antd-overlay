@@ -469,7 +469,16 @@ export function useGlobalOverlay<T extends CustomOverlayProps>(
   options?: UseOverlayOptions<T>,
 ): OverlayOpener<T> {
   // 获取全局容器的注册/注销方法
-  const { addHolder, removeHolder } = useAntdOverlayContext();
+  const context = useAntdOverlayContext();
+
+  if (!context) {
+    throw new Error(
+      'useGlobalOverlay must be used within an AntdOverlayProvider. ' +
+      'Please wrap your application with <AntdOverlayProvider>.'
+    );
+  }
+
+  const { addHolder, removeHolder } = context;
 
   // 使用基础 useOverlay 获取功能
   const [openOverlay, contextHolder] = useOverlay<T>(OverlayComponent, options);

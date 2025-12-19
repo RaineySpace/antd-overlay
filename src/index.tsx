@@ -90,6 +90,12 @@
 // 全局容器层 - Context 管理
 // ============================================================================
 
+export type {
+  AntdOverlayProviderProps,
+  DefaultDrawerProps,
+  DefaultModalProps,
+} from './AntdOverlayContext';
+
 export { AntdOverlayProvider, useAntdOverlayContext } from './AntdOverlayContext';
 
 // ============================================================================
