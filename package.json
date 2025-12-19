@@ -1,6 +1,6 @@
 {
   "name": "antd-overlay",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Ant Design Modal/Drawer 命令式调用方案",
   "type": "module",
   "main": "./dist/index.cjs",
