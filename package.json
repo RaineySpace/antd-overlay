@@ -1,6 +1,6 @@
 {
   "name": "antd-overlay",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Ant Design Modal/Drawer 命令式调用方案",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -31,7 +31,7 @@
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build",
     "changeset": "changeset",
-    "version": "changeset version",
+    "version-packages": "changeset version",
     "release": "pnpm build && changeset publish"
   },
   "keywords": [
@@ -48,6 +48,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/RaineySpace/antd-overlay"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
     "antd": ">=5.0.0",
