@@ -62,19 +62,19 @@ interface MyModalProps extends CustomModalProps<{ result: string }> {
 }
 
 const MyModal: React.FC<MyModalProps> = ({
-  open,
   customClose,
   customOk,
   initialValue,
+  ...props
 }) => {
   const [value, setValue] = useState(initialValue || '');
 
   return (
     <Modal
       title="输入内容"
-      open={open}
       onCancel={customClose}
       onOk={() => customOk?.({ result: value })}
+      {...props}
     >
       <Input value={value} onChange={(e) => setValue(e.target.value)} />
     </Modal>
@@ -312,22 +312,19 @@ import { CustomModalProps, useGlobalModal } from 'antd-overlay';
 
 interface ConfirmDeleteModalProps extends CustomModalProps<void> {
   itemName: string;
-  onConfirm: () => Promise<void>;
 }
 
 const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
-  open,
   customClose,
   customOk,
   itemName,
-  onConfirm,
+  ...props
 }) => {
   const [loading, setLoading] = useState(false);
 
   const handleOk = async () => {
     setLoading(true);
     try {
-      await onConfirm();
       message.success('删除成功');
       customOk?.();
     } catch (error) {
@@ -340,12 +337,12 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
   return (
     <Modal
       title="确认删除"
-      open={open}
       onCancel={customClose}
       onOk={handleOk}
       confirmLoading={loading}
       okText="删除"
       okType="danger"
+      {...props}
     >
       确定要删除 "{itemName}" 吗？此操作不可恢复。
     </Modal>
@@ -359,7 +356,7 @@ function ItemList() {
   const handleDelete = (item: Item) => {
     openConfirm({
       itemName: item.name,
-      onConfirm: () => deleteItem(item.id),
+      customOk: () => deleteItem(item.id),
     });
   };
 
@@ -393,9 +390,9 @@ interface UserDetailDrawerProps extends CustomDrawerProps {
 }
 
 const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
-  open,
   customClose,
   userId,
+  ...props
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -412,9 +409,9 @@ const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
   return (
     <Drawer
       title="用户详情"
-      open={open}
       onClose={customClose}
       width={500}
+      {...props}
     >
       {loading ? (
         <Spin />
