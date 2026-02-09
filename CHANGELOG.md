@@ -1,5 +1,11 @@
 # antd-overlay
 
+## 0.0.3
+
+### Patch Changes
+
+- 修改模块导出方式
+
 ## 0.0.2
 
 ### Patch Changes
