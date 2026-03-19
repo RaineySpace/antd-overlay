@@ -81,10 +81,13 @@ export interface CustomOverlayProps<T = any, R = void> {
 }
 
 /**
- * 内部使用的属性类型
- * 排除 customClose，因为它由 useOverlay 自动注入，用户无需传递
+ * 用户可传入的覆盖层属性（不含由 Hook 注入的 customClose）
+ * 与 open / update 以及 UseOverlayOptions 中的默认项类型一致
  */
-type InternalProps<T extends CustomOverlayProps> = Omit<T, 'customClose'>;
+export type InternalOverlayProps<T extends CustomOverlayProps> = Omit<T, 'customClose'>;
+
+/** @internal 与 InternalOverlayProps 同义，文件内简写 */
+type InternalProps<T extends CustomOverlayProps> = InternalOverlayProps<T>;
 
 /**
  * 覆盖层控制器接口
@@ -156,12 +159,22 @@ export type OverlayOpener<T extends CustomOverlayProps> = (
  *   用于将内部状态转换为组件实际需要的属性。
  *   不同的 UI 组件（Modal、Drawer）有不同的动画回调机制，
  *   通过适配器实现统一的接口。
+ *
+ * @property defaultProps - 覆盖层默认属性
+ *   打开或 update 时会与传入的 props 合并，传入的 props 优先。
+ *
+ * 另：可在 options 顶层直接写 {@link InternalOverlayProps} 中的字段（如 customOk），
+ * 与 defaultProps 合并时，顶层同名字段优先于 defaultProps 中的值。
  */
-export interface UseOverlayOptions<T extends CustomOverlayProps> {
+export type UseOverlayOptions<T extends CustomOverlayProps> = {
   /** 是否启用关闭动画，默认 true */
   animation?: boolean;
   /** React key 前缀，用于标识覆盖层类型 */
   keyPrefix?: string;
+  /**
+   * 覆盖层默认属性，与 open/update 传入的 props 合并时作为基底
+   */
+  defaultProps?: Partial<InternalOverlayProps<T>>;
   /**
    * 属性适配器函数
    * @param props - 用户传入的属性
@@ -179,7 +192,7 @@ export interface UseOverlayOptions<T extends CustomOverlayProps> {
       onAnimationEnd: () => void;
     },
   ) => T;
-}
+} & Partial<InternalOverlayProps<T>>;
 
 // ============================================================================
 // 默认属性适配器
@@ -278,12 +291,22 @@ export function useOverlay<T extends CustomOverlayProps>(
   OverlayComponent: React.FC<T>,
   options: UseOverlayOptions<T> = {},
 ): [OverlayOpener<T>, React.ReactNode] {
-  // 解构配置选项，设置默认值
+  // 解构配置选项：Hook 专用字段 + 其余视为默认 overlay 属性（与 defaultProps 合并，顶层优先）
   const {
     animation = true,
     keyPrefix = 'use-overlay',
+    defaultProps: defaultPropsFromOption,
     propsAdapter = defaultPropsAdapter,
+    ...restDefaultFromTopLevel
   } = options;
+
+  const mergedDefaultProps = {
+    ...defaultPropsFromOption,
+    ...restDefaultFromTopLevel,
+  } as unknown as Partial<InternalOverlayProps<T>>;
+
+  const defaultPropsRef = useRef<Partial<InternalOverlayProps<T>>>(mergedDefaultProps);
+  defaultPropsRef.current = mergedDefaultProps;
 
   // 生成唯一 ID，用于 React key
   const id = useId();
@@ -399,16 +422,24 @@ export function useOverlay<T extends CustomOverlayProps>(
       setRenderEnable(true);
       // 2. 设置为打开状态（触发打开动画）
       setOpen(true);
-      // 3. 存储初始属性
-      setProps(initializeProps);
+      // 3. 存储初始属性（与 defaultProps 合并，传入的 props 优先）
+      setProps({
+        ...defaultPropsRef.current,
+        ...initializeProps,
+      } as InternalProps<T>);
 
       // 返回控制器
       return {
         /**
          * 更新覆盖层属性
-         * 注意：这是完全替换，不是合并
+         * 与 defaultProps 合并，传入的 newProps 优先
          */
-        update: (newProps: InternalProps<T>) => setProps(newProps),
+        update: (newProps: InternalProps<T>) =>
+          setProps((prev) => ({
+            ...defaultPropsRef.current,
+            ...prev,
+            ...newProps,
+          } as InternalProps<T>)),
         /**
          * 关闭覆盖层
          */
@@ -537,13 +568,13 @@ export function generateUseOverlayHook<T extends CustomOverlayProps>(
      * @param options - 配置选项，会与 defaultOptions 合并
      */
     useOverlay: (options?: UseOverlayOptions<T>) =>
-      useOverlay(OverlayComponent, { ...defaultOptions, ...options }),
+      useOverlay(OverlayComponent, { ...defaultOptions, ...options } as UseOverlayOptions<T>),
 
     /**
      * 绑定了特定组件的 useGlobalOverlay
      * @param options - 配置选项，会与 defaultOptions 合并
      */
     useGlobalOverlay: (options?: UseOverlayOptions<T>) =>
-      useGlobalOverlay(OverlayComponent, { ...defaultOptions, ...options }),
+      useGlobalOverlay(OverlayComponent, { ...defaultOptions, ...options } as UseOverlayOptions<T>),
   };
 }

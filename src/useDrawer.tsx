@@ -58,7 +58,8 @@ export interface CustomDrawerProps<T = any, R = void>
 
 /**
  * useDrawer Hook 的配置选项
- * 排除了 propsAdapter 和 keyPrefix，这些由内部自动处理
+ * 排除了 propsAdapter 和 keyPrefix，这些由内部自动处理。
+ * 与 {@link UseOverlayOptions} 一致：可在顶层或 defaultProps 中传入默认 Drawer 属性。
  */
 export type UseDrawerOptions = Omit<
   UseOverlayOptions<CustomDrawerProps>,
@@ -153,7 +154,7 @@ export function useDrawer<T extends CustomDrawerProps>(
     ...options,
     keyPrefix: 'use-drawer',
     propsAdapter,
-  });
+  } as UseOverlayOptions<T>);
 }
 
 /**
@@ -195,7 +196,7 @@ export function useGlobalDrawer<T extends CustomDrawerProps>(
     ...options,
     keyPrefix: 'use-drawer',
     propsAdapter,
-  });
+  } as UseOverlayOptions<T>);
 }
 
 /**

@@ -57,12 +57,10 @@ export interface CustomModalProps<T = any, R = void> extends ModalProps, CustomO
 
 /**
  * useModal Hook 的配置选项
- * 排除了 propsAdapter 和 keyPrefix，这些由内部自动处理
+ * 排除了 propsAdapter 和 keyPrefix，这些由内部自动处理。
+ * 与 {@link UseOverlayOptions} 一致：可在顶层或 defaultProps 中传入默认 Modal 属性。
  */
-export type UseModalOptions = Omit<
-  UseOverlayOptions<CustomModalProps>,
-  'propsAdapter' | 'keyPrefix'
->;
+export type UseModalOptions = Omit<UseOverlayOptions<CustomModalProps>, 'propsAdapter' | 'keyPrefix'>;
 
 /**
  * 创建 Modal 专用的属性适配器
@@ -138,6 +136,11 @@ const createModalPropsAdapter = <T extends CustomModalProps>(
  *     </>
  *   );
  * }
+ *
+ * @example
+ * // 传入默认 overlay 属性（如 customOk），打开/update 时会与传入的 props 合并
+ * const [openModal, modalHolder] = useModal(ConfirmModal, { customOk: () => null });
+ * openModal({ title: '确认' }); // 使用默认 customOk，仅覆盖 title
  */
 export function useModal<T extends CustomModalProps>(
   ModalComponent: React.FC<T>,
@@ -152,7 +155,7 @@ export function useModal<T extends CustomModalProps>(
     ...options,
     keyPrefix: 'use-modal',
     propsAdapter,
-  });
+  } as UseOverlayOptions<T>);
 }
 
 /**
@@ -194,7 +197,7 @@ export function useGlobalModal<T extends CustomModalProps>(
     ...options,
     keyPrefix: 'use-modal',
     propsAdapter,
-  });
+  } as UseOverlayOptions<T>);
 }
 
 /**

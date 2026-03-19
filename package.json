@@ -19,6 +19,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "dev:demo": "vite",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write .",
@@ -55,14 +56,18 @@
     "@changesets/cli": "^2.27.10",
     "@eslint/js": "^9.17.0",
     "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react-swc": "^4.3.0",
     "antd": "^6.2.2",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-react-hooks": "^5.1.0",
     "prettier": "^3.4.2",
-    "react": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.1"
+    "typescript-eslint": "^8.18.1",
+    "vite": "^8.0.1"
   }
 }

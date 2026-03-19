@@ -104,6 +104,7 @@ export { AntdOverlayProvider, useAntdOverlayContext } from './AntdOverlayContext
 
 export type {
   CustomOverlayProps,
+  InternalOverlayProps,
   OverlayController,
   OverlayOpener,
   UseOverlayOptions,

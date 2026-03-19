@@ -3,6 +3,7 @@ node_modules/
 
 # 构建输出
 dist/
+demo-dist/
 
 # 测试覆盖率
 coverage/
