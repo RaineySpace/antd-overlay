@@ -60,9 +60,11 @@ export interface CustomDrawerProps<T = any, R = void>
  * useDrawer Hook 的配置选项
  * 排除了 propsAdapter 和 keyPrefix，这些由内部自动处理。
  * 与 {@link UseOverlayOptions} 一致：可在顶层或 defaultProps 中传入默认 Drawer 属性。
+ *
+ * @template T - 与传入的 Drawer 组件 props 一致，可包含在 {@link CustomDrawerProps} 之外的自定义字段
  */
-export type UseDrawerOptions = Omit<
-  UseOverlayOptions<CustomDrawerProps>,
+export type UseDrawerOptions<T extends CustomDrawerProps = CustomDrawerProps> = Omit<
+  UseOverlayOptions<T>,
   'propsAdapter' | 'keyPrefix'
 >;
 
@@ -143,7 +145,7 @@ const createDrawerPropsAdapter = <T extends CustomDrawerProps>(
  */
 export function useDrawer<T extends CustomDrawerProps>(
   DrawerComponent: React.FC<T>,
-  options?: UseDrawerOptions,
+  options?: UseDrawerOptions<T>,
 ): [OverlayOpener<T>, React.ReactNode] {
   const context = useAntdOverlayContext();
   const propsAdapter = useMemo(
@@ -185,7 +187,7 @@ export function useDrawer<T extends CustomDrawerProps>(
  */
 export function useGlobalDrawer<T extends CustomDrawerProps>(
   DrawerComponent: React.FC<T>,
-  options?: UseDrawerOptions,
+  options?: UseDrawerOptions<T>,
 ): OverlayOpener<T> {
   const context = useAntdOverlayContext();
   const propsAdapter = useMemo(
@@ -232,8 +234,8 @@ export function useGlobalDrawer<T extends CustomDrawerProps>(
  */
 export function generateUseDrawerHook<T extends CustomDrawerProps>(DrawerComponent: React.FC<T>) {
   return {
-    useDrawer: (options?: UseDrawerOptions) => useDrawer(DrawerComponent, options),
-    useGlobalDrawer: (options?: UseDrawerOptions) => useGlobalDrawer(DrawerComponent, options),
+    useDrawer: (options?: UseDrawerOptions<T>) => useDrawer(DrawerComponent, options),
+    useGlobalDrawer: (options?: UseDrawerOptions<T>) => useGlobalDrawer(DrawerComponent, options),
   };
 }
 

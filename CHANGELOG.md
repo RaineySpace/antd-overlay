@@ -1,5 +1,11 @@
 # antd-overlay
 
+## 0.1.1
+
+### Patch Changes
+
+- 兼容自定义 Modal 的额外 props：`useModal` / `useGlobalModal` 的 `options` 在类型层不再收窄，可直接传入自定义字段（例如 `placeholder`）。
+
 ## 0.1.0
 
 ### Minor Changes

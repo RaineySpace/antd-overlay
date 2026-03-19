@@ -39,6 +39,7 @@ export const BasicModalDemo: React.FC = () => {
 
   const [openModal, holder] = useModal(ConfirmModal, {
     title: 'Title',
+    placeholder: 'This placeholder comes from defaultProps',
     customOk: ({ value }) => {
       setResult(value);
     },
@@ -55,9 +56,7 @@ export const BasicModalDemo: React.FC = () => {
     <Space>
       <Button
         onClick={() =>
-          openModal({
-            placeholder: 'This placeholder comes from open()',
-          })
+          openModal()
         }
       >
         Open Local Modal

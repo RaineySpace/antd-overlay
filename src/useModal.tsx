@@ -59,8 +59,13 @@ export interface CustomModalProps<T = any, R = void> extends ModalProps, CustomO
  * useModal Hook 的配置选项
  * 排除了 propsAdapter 和 keyPrefix，这些由内部自动处理。
  * 与 {@link UseOverlayOptions} 一致：可在顶层或 defaultProps 中传入默认 Modal 属性。
+ *
+ * @template T - 与传入的 Modal 组件 props 一致，可包含在 {@link CustomModalProps} 之外的自定义字段
  */
-export type UseModalOptions = Omit<UseOverlayOptions<CustomModalProps>, 'propsAdapter' | 'keyPrefix'>;
+export type UseModalOptions<T extends CustomModalProps = CustomModalProps> = Omit<
+  UseOverlayOptions<T>,
+  'propsAdapter' | 'keyPrefix'
+>;
 
 /**
  * 创建 Modal 专用的属性适配器
@@ -144,7 +149,7 @@ const createModalPropsAdapter = <T extends CustomModalProps>(
  */
 export function useModal<T extends CustomModalProps>(
   ModalComponent: React.FC<T>,
-  options?: UseModalOptions,
+  options?: UseModalOptions<T>,
 ): [OverlayOpener<T>, React.ReactNode] {
   const context = useAntdOverlayContext();
   const propsAdapter = useMemo(
@@ -186,7 +191,7 @@ export function useModal<T extends CustomModalProps>(
  */
 export function useGlobalModal<T extends CustomModalProps>(
   ModalComponent: React.FC<T>,
-  options?: UseModalOptions,
+  options?: UseModalOptions<T>,
 ): OverlayOpener<T> {
   const context = useAntdOverlayContext();
   const propsAdapter = useMemo(
@@ -233,8 +238,8 @@ export function useGlobalModal<T extends CustomModalProps>(
  */
 export function generateUseModalHook<T extends CustomModalProps>(ModalComponent: React.FC<T>) {
   return {
-    useModal: (options?: UseModalOptions) => useModal(ModalComponent, options),
-    useGlobalModal: (options?: UseModalOptions) => useGlobalModal(ModalComponent, options),
+    useModal: (options?: UseModalOptions<T>) => useModal(ModalComponent, options),
+    useGlobalModal: (options?: UseModalOptions<T>) => useGlobalModal(ModalComponent, options),
   };
 }
 

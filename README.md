@@ -170,11 +170,11 @@ function GlobalUsage() {
 
 局部 Modal Hook。
 
-**`options`（`UseModalOptions`）** 与底层 `useOverlay` 一致（不含 `propsAdapter` / `keyPrefix`，由内部固定）：
+**`options`（`UseModalOptions<T>`，`T` 由传入的 Modal 组件推断）** 与底层 `useOverlay` 一致（不含 `propsAdapter` / `keyPrefix`，由内部固定）：
 
 - `animation?: boolean` — 是否等待关闭动画后再卸载，默认 `true`
 - `defaultProps?: Partial<Omit<T, 'customClose'>>` — 每次打开/更新时与入参合并的默认属性
-- 另可将 Modal 相关字段写在 `options` 顶层，与 `defaultProps` 合并时**顶层字段优先**
+- 另可将 Modal 相关字段及**组件自定义扩展属性**写在 `options` 顶层，与 `defaultProps` 合并时**顶层字段优先**
 
 **返回值：** `[openModal, holder]` — `openModal` 为 `OverlayOpener<T>`，返回 `OverlayController<T>`。
 
@@ -184,7 +184,7 @@ function GlobalUsage() {
 
 #### `generateUseModalHook<T>(Component)`
 
-为指定 Modal 组件生成 `{ useModal, useGlobalModal }`，二者均可传入 `options?: UseModalOptions`。
+为指定 Modal 组件生成 `{ useModal, useGlobalModal }`，二者均可传入 `options?: UseModalOptions<T>`（`T` 与组件 props 一致）。
 
 ```tsx
 export const {
@@ -197,7 +197,7 @@ export const {
 
 #### `useDrawer<T>(Component, options?)` / `useGlobalDrawer<T>(Component, options?)`
 
-语义与 Modal 侧相同，选项类型为 `UseDrawerOptions`（同样支持 `animation`、`defaultProps` 及顶层 Drawer 属性）。
+语义与 Modal 侧相同，选项类型为 `UseDrawerOptions<T>`（`T` 由 Drawer 组件推断；同样支持 `animation`、`defaultProps`、顶层 Drawer 属性及组件自定义扩展字段）。
 
 #### `generateUseDrawerHook<T>(Component)`
 
