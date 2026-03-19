@@ -1,5 +1,15 @@
 # antd-overlay
 
+## 0.1.0
+
+### Minor Changes
+
+- 为 useOverlay/useModal/useDrawer 增强默认属性能力：支持在 Hook options 顶层或 defaultProps 中传入默认 overlay props（如 customOk），并补充 Vite demo 方便本地验证。
+
+### Patch Changes
+
+- 更新 README 文档以对齐当前导出 API、类型定义及本地开发脚本。
+
 ## 0.0.3
 
 ### Patch Changes

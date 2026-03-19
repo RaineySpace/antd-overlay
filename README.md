@@ -7,11 +7,11 @@ Ant Design Modal/Drawer 命令式调用方案。
 
 ## 特性
 
-- 🚀 **命令式调用** - 通过函数调用打开/关闭覆盖层，无需管理 `open` 状态
-- 🎨 **动画支持** - 正确处理打开/关闭动画，避免动画未完成就卸载组件
-- 🌍 **全局挂载** - 支持跨组件调用，覆盖层可挂载到全局容器
+- 🚀 **命令式调用** - 通过函数调用打开/关闭覆盖层，无需在业务里维护 `open` 状态
+- 🎨 **动画支持** - 正确处理打开/关闭动画（Modal 使用 `afterClose`，Drawer 使用 `afterOpenChange`），避免动画未完成就卸载
+- 🌍 **全局挂载** - 支持跨组件调用，覆盖层挂载到 `AntdOverlayProvider` 统一容器
 - 📦 **类型安全** - 完整的 TypeScript 类型支持
-- 🔧 **灵活扩展** - 支持自定义覆盖层组件
+- 🔧 **灵活扩展** - `useOverlay` + `propsAdapter` 可对接自定义覆盖层组件
 
 ## 安装
 
@@ -34,23 +34,39 @@ yarn add antd-overlay
 }
 ```
 
+## 本地开发与示例
+
+```bash
+pnpm install
+pnpm dev:demo    # 启动 Vite 演示（demo/：Modal / Drawer / useOverlay）
+pnpm build       # 使用 tsup 构建 dist
+pnpm typecheck   # TypeScript 检查
+```
+
+演示入口将 `ConfigProvider` 与 `AntdOverlayProvider` 组合使用，与线上应用推荐结构一致。
+
 ## 快速开始
 
 ### 1. 包裹 Provider（可选，仅全局 Hook 需要）
 
 ```tsx
 import { AntdOverlayProvider } from 'antd-overlay';
+import { ConfigProvider } from 'antd';
 
 function App() {
   return (
-    <AntdOverlayProvider>
-      <YourApp />
-    </AntdOverlayProvider>
+    <ConfigProvider>
+      <AntdOverlayProvider>
+        <YourApp />
+      </AntdOverlayProvider>
+    </ConfigProvider>
   );
 }
 ```
 
 ### 2. 创建覆盖层组件
+
+自定义 Modal 需实现 `CustomModalProps`（继承 antd `ModalProps` 与 `CustomOverlayProps`）。请将 antd `Modal` 的 `open` 接到 props 上，由 Hook 注入显示状态。
 
 ```tsx
 import { Modal, Input } from 'antd';
@@ -62,6 +78,7 @@ interface MyModalProps extends CustomModalProps<{ result: string }> {
 }
 
 const MyModal: React.FC<MyModalProps> = ({
+  open,
   customClose,
   customOk,
   initialValue,
@@ -71,6 +88,7 @@ const MyModal: React.FC<MyModalProps> = ({
 
   return (
     <Modal
+      open={open}
       title="输入内容"
       onCancel={customClose}
       onOk={() => customOk?.({ result: value })}
@@ -91,10 +109,10 @@ import { useModal, useGlobalModal } from 'antd-overlay';
 function LocalUsage() {
   const [openModal, holder] = useModal(MyModal);
 
-  const handleOpen = async () => {
+  const handleOpen = () => {
     const controller = openModal({ initialValue: 'hello' });
-    // controller.update({ initialValue: 'updated' }); // 可动态更新
-    // controller.close(); // 可编程式关闭
+    // controller.update({ initialValue: 'updated' });
+    // controller.close();
   };
 
   return (
@@ -117,25 +135,23 @@ function GlobalUsage() {
 }
 ```
 
+`openModal(...)` 返回 `OverlayController`：可调用 `update` 传入要更新的字段（与当前已保存的 props 及 Hook 的 `defaultProps` **浅合并**，同名键以本次 `update` 入参为准）、`close` 关闭（会尊重动画配置）。
+
 ## API
 
 ### Provider
 
 #### `AntdOverlayProvider`
 
-全局覆盖层容器，使用 `useGlobalModal`、`useGlobalDrawer`、`useGlobalOverlay` 时需要在应用外层包裹。
+全局覆盖层容器；使用 `useGlobalModal`、`useGlobalDrawer`、`useGlobalOverlay` 时需要在应用内包裹。
 
 **属性：**
-- `children: React.ReactNode` - 子节点
-- `defaultModalProps?: Partial<ModalProps>` - 默认 Modal 属性，会应用到所有 Modal
-- `defaultDrawerProps?: Partial<DrawerProps>` - 默认 Drawer 属性，会应用到所有 Drawer
+
+- `children: React.ReactNode`
+- `defaultModalProps?: Partial<ModalProps>` — 默认 Modal 属性，与每次 `open` / `update` 传入的 props 合并（传入方优先）
+- `defaultDrawerProps?: Partial<DrawerProps>` — 同上，作用于 Drawer
 
 ```tsx
-<AntdOverlayProvider>
-  <App />
-</AntdOverlayProvider>
-
-// 或设置默认属性
 <AntdOverlayProvider
   defaultModalProps={{ centered: true, maskClosable: false }}
   defaultDrawerProps={{ width: 600 }}
@@ -144,93 +160,54 @@ function GlobalUsage() {
 </AntdOverlayProvider>
 ```
 
+#### `useAntdOverlayContext()`
+
+读取 Context（含 `holders`、`addHolder`、`removeHolder` 及默认 Modal/Drawer 配置）。**必须在 `AntdOverlayProvider` 内使用**；一般供扩展或库内集成，业务侧很少直接使用。
+
 ### Modal Hooks
 
 #### `useModal<T>(Component, options?)`
 
-局部 Modal 管理 Hook。
+局部 Modal Hook。
 
-**参数：**
-- `Component: React.FC<T>` - Modal 组件，需实现 `CustomModalProps` 接口
-- `options?: UseModalOptions` - 配置选项
-  - `animation?: boolean` - 是否启用动画，默认 `true`
+**`options`（`UseModalOptions`）** 与底层 `useOverlay` 一致（不含 `propsAdapter` / `keyPrefix`，由内部固定）：
 
-**返回值：**
-- `[openModal, holder]` - 打开函数和需要渲染的 holder 节点
+- `animation?: boolean` — 是否等待关闭动画后再卸载，默认 `true`
+- `defaultProps?: Partial<Omit<T, 'customClose'>>` — 每次打开/更新时与入参合并的默认属性
+- 另可将 Modal 相关字段写在 `options` 顶层，与 `defaultProps` 合并时**顶层字段优先**
 
-```tsx
-const [openModal, holder] = useModal(MyModal);
-```
+**返回值：** `[openModal, holder]` — `openModal` 为 `OverlayOpener<T>`，返回 `OverlayController<T>`。
 
 #### `useGlobalModal<T>(Component, options?)`
 
-全局 Modal 管理 Hook，无需手动渲染 holder。
-
-**参数：** 同 `useModal`
-
-**返回值：**
-- `openModal` - 打开函数
-
-```tsx
-const openModal = useGlobalModal(MyModal);
-```
+全局 Modal Hook；无需渲染 `holder`。
 
 #### `generateUseModalHook<T>(Component)`
 
-为特定 Modal 组件生成专用 Hook 工厂函数。
+为指定 Modal 组件生成 `{ useModal, useGlobalModal }`，二者均可传入 `options?: UseModalOptions`。
 
 ```tsx
-// modal.tsx
 export const {
   useModal: useMyModal,
   useGlobalModal: useGlobalMyModal,
 } = generateUseModalHook(MyModal);
-
-// usage.tsx
-const openModal = useGlobalMyModal();
 ```
 
 ### Drawer Hooks
 
-#### `useDrawer<T>(Component, options?)`
+#### `useDrawer<T>(Component, options?)` / `useGlobalDrawer<T>(Component, options?)`
 
-局部 Drawer 管理 Hook。
-
-```tsx
-const [openDrawer, holder] = useDrawer(MyDrawer);
-```
-
-#### `useGlobalDrawer<T>(Component, options?)`
-
-全局 Drawer 管理 Hook。
-
-```tsx
-const openDrawer = useGlobalDrawer(MyDrawer);
-```
+语义与 Modal 侧相同，选项类型为 `UseDrawerOptions`（同样支持 `animation`、`defaultProps` 及顶层 Drawer 属性）。
 
 #### `generateUseDrawerHook<T>(Component)`
 
-为特定 Drawer 组件生成专用 Hook 工厂函数。
-
-```tsx
-export const {
-  useDrawer: useMyDrawer,
-  useGlobalDrawer: useGlobalMyDrawer,
-} = generateUseDrawerHook(MyDrawer);
-```
+生成 `{ useDrawer, useGlobalDrawer }`。
 
 ### 通用 Overlay Hooks
 
 #### `useOverlay<T>(Component, options?)`
 
-通用覆盖层管理 Hook，适用于自定义覆盖层组件。
-
-**参数：**
-- `Component: React.FC<T>` - 覆盖层组件
-- `options?: UseOverlayOptions<T>` - 配置选项
-  - `animation?: boolean` - 是否启用动画，默认 `true`
-  - `keyPrefix?: string` - React key 前缀
-  - `propsAdapter?: (props, state) => T` - 属性适配器函数
+通用覆盖层 Hook；需自行提供 `propsAdapter`，把内部 `state.open` / `state.onClose` / `state.onAnimationEnd` 映射到组件 API。
 
 ```tsx
 const [openOverlay, holder] = useOverlay(MyOverlay, {
@@ -238,7 +215,7 @@ const [openOverlay, holder] = useOverlay(MyOverlay, {
     ...props,
     visible: state.open,
     onClose: state.onClose,
-    afterVisibleChange: (visible) => {
+    afterVisibleChange: (visible: boolean) => {
       if (!visible) state.onAnimationEnd();
     },
   }),
@@ -247,41 +224,15 @@ const [openOverlay, holder] = useOverlay(MyOverlay, {
 
 #### `useGlobalOverlay<T>(Component, options?)`
 
-全局通用覆盖层管理 Hook。
+全局版本，依赖 `AntdOverlayProvider`。
 
 #### `generateUseOverlayHook<T>(Component, defaultOptions?)`
 
-为特定覆盖层组件生成专用 Hook 工厂函数。
+生成绑定组件的 `useOverlay` / `useGlobalOverlay`；调用时可再传 `options` 与 `defaultOptions` 浅合并。
 
 ### 类型定义
 
-#### `CustomModalProps<T, R>`
-
-Modal 组件属性接口，继承自 `antd` 的 `ModalProps`。
-
-```typescript
-interface CustomModalProps<T = any, R = void> extends ModalProps {
-  open?: boolean;
-  customClose: () => void;
-  customOk?: (value: T) => R;
-}
-```
-
-#### `CustomDrawerProps<T, R>`
-
-Drawer 组件属性接口，继承自 `antd` 的 `DrawerProps`。
-
-```typescript
-interface CustomDrawerProps<T = any, R = void> extends DrawerProps {
-  open?: boolean;
-  customClose: () => void;
-  customOk?: (value: T) => R;
-}
-```
-
 #### `CustomOverlayProps<T, R>`
-
-通用覆盖层组件属性接口。
 
 ```typescript
 interface CustomOverlayProps<T = any, R = void> {
@@ -291,23 +242,35 @@ interface CustomOverlayProps<T = any, R = void> {
 }
 ```
 
+#### `CustomModalProps<T, R>` / `CustomDrawerProps<T, R>`
+
+分别为 `ModalProps` / `DrawerProps` 与 `CustomOverlayProps` 的交叉类型。
+
+#### `InternalOverlayProps<T>`
+
+`Omit<T, 'customClose'>`，表示打开/更新时可传入的属性（由 Hook 注入 `customClose`）。
+
 #### `OverlayController<T>`
 
-覆盖层控制器，由 `openModal`/`openDrawer`/`openOverlay` 返回。
-
 ```typescript
-interface OverlayController<T> {
-  update: (props: Omit<T, 'customClose'>) => void;
-  close: () => void;
+interface OverlayController<T extends CustomOverlayProps> {
+  /** 与 defaultProps、当前 props 浅合并后更新 */
+  readonly update: (props: InternalOverlayProps<T>) => void;
+  readonly close: () => void;
 }
 ```
+
+#### `OverlayOpener<T>`
+
+`(initialize?: InternalOverlayProps<T>) => OverlayController<T>`。
 
 ## 完整示例
 
 ### 确认删除 Modal
 
 ```tsx
-import { Modal, message } from 'antd';
+import React, { useState } from 'react';
+import { Modal, message, List, Button } from 'antd';
 import { CustomModalProps, useGlobalModal } from 'antd-overlay';
 
 interface ConfirmDeleteModalProps extends CustomModalProps<void> {
@@ -315,6 +278,7 @@ interface ConfirmDeleteModalProps extends CustomModalProps<void> {
 }
 
 const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
+  open,
   customClose,
   customOk,
   itemName,
@@ -327,7 +291,7 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
     try {
       message.success('删除成功');
       customOk?.();
-    } catch (error) {
+    } catch {
       message.error('删除失败');
     } finally {
       setLoading(false);
@@ -336,6 +300,7 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
 
   return (
     <Modal
+      open={open}
       title="确认删除"
       onCancel={customClose}
       onOk={handleOk}
@@ -344,29 +309,31 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
       okType="danger"
       {...props}
     >
-      确定要删除 "{itemName}" 吗？此操作不可恢复。
+      确定要删除 &quot;{itemName}&quot; 吗？此操作不可恢复。
     </Modal>
   );
 };
 
-// 使用
+// 使用（示例数据与类型请按项目替换）
 function ItemList() {
   const openConfirm = useGlobalModal(ConfirmDeleteModal);
 
-  const handleDelete = (item: Item) => {
+  const handleDelete = (item: { id: number; name: string }) => {
     openConfirm({
       itemName: item.name,
-      customOk: () => deleteItem(item.id),
+      customOk: () => {
+        /* deleteItem(item.id) */
+      },
     });
   };
 
   return (
     <List
-      dataSource={items}
+      dataSource={[]}
       renderItem={(item) => (
         <List.Item
           actions={[
-            <Button danger onClick={() => handleDelete(item)}>
+            <Button key="del" danger onClick={() => handleDelete(item)}>
               删除
             </Button>,
           ]}
@@ -382,6 +349,7 @@ function ItemList() {
 ### 用户详情 Drawer
 
 ```tsx
+import React, { useEffect, useState } from 'react';
 import { Drawer, Descriptions, Spin } from 'antd';
 import { CustomDrawerProps, generateUseDrawerHook } from 'antd-overlay';
 
@@ -390,29 +358,25 @@ interface UserDetailDrawerProps extends CustomDrawerProps {
 }
 
 const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
+  open,
   customClose,
   userId,
   ...props
 }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; phone: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open && userId) {
       setLoading(true);
-      fetchUser(userId)
+      Promise.resolve(/* fetchUser(userId) */)
         .then(setUser)
         .finally(() => setLoading(false));
     }
   }, [open, userId]);
 
   return (
-    <Drawer
-      title="用户详情"
-      onClose={customClose}
-      width={500}
-      {...props}
-    >
+    <Drawer open={open} title="用户详情" onClose={customClose} width={500} {...props}>
       {loading ? (
         <Spin />
       ) : user ? (
@@ -426,27 +390,24 @@ const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
   );
 };
 
-// 导出专用 Hook
 export const {
   useDrawer: useUserDetailDrawer,
   useGlobalDrawer: useGlobalUserDetailDrawer,
 } = generateUseDrawerHook(UserDetailDrawer);
 
-// 使用
 function UserCard({ userId }: { userId: number }) {
   const openDetail = useGlobalUserDetailDrawer();
 
-  return (
-    <Card onClick={() => openDetail({ userId })}>
-      查看详情
-    </Card>
-  );
+  return <div onClick={() => openDetail({ userId })}>查看详情</div>;
 }
 ```
 
 ### 动态更新 Modal
 
 ```tsx
+import { Button } from 'antd';
+// UploadModal、delay 由业务自行实现
+
 function ProgressModal() {
   const [openModal, holder] = useModal(UploadModal);
 
@@ -476,11 +437,11 @@ function ProgressModal() {
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    useModal / useDrawer                 │  <- 业务层封装
+│                    useModal / useDrawer                 │  业务层封装
 ├─────────────────────────────────────────────────────────┤
-│              useOverlay / useGlobalOverlay              │  <- 核心逻辑层
+│              useOverlay / useGlobalOverlay              │  核心逻辑层
 ├─────────────────────────────────────────────────────────┤
-│                  AntdOverlayProvider                    │  <- 全局容器层
+│                  AntdOverlayProvider                    │  全局容器层
 └─────────────────────────────────────────────────────────┘
 ```
 
