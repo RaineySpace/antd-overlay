@@ -31,6 +31,7 @@ import {
   useGlobalOverlay,
   useOverlay,
   UseOverlayOptions,
+  wrapCustomOk,
 } from './useOverlay';
 
 /**
@@ -100,11 +101,7 @@ const createModalPropsAdapter = <T extends CustomModalProps>(
 
     // 包装 customOk，调用后自动关闭 Modal
     if (result.customOk) {
-      const originalCustomOk = result?.customOk;
-      result.customOk = ((value: unknown) => {
-        originalCustomOk?.(value);
-        state.onClose();
-      }) as T['customOk'];
+      result.customOk = wrapCustomOk(result.customOk, state.onClose) as T['customOk'];
     }
 
     return result;

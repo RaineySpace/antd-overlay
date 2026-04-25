@@ -1,5 +1,12 @@
 # antd-overlay
 
+## 0.1.2
+
+### Patch Changes
+
+- - 统一 `useOverlay`、`useModal`、`useDrawer` 的 `customOk` 异步关闭语义：同步成功或 Promise resolve 时关闭，reject/throw 时保持覆盖层打开并透传错误。
+  - 新增 `AsyncCustomOkDemo`，用于在 demo 中验证 Overlay/Modal/Drawer 的异步成功与失败场景。
+
 ## 0.1.1
 
 ### Patch Changes

@@ -77,7 +77,7 @@ export interface CustomOverlayProps<T = any, R = void> {
   /** 关闭覆盖层的回调，由 useOverlay 自动注入 */
   customClose: () => void;
   /** 确认操作回调，调用后自动关闭覆盖层 */
-  customOk?: (value: T) => R;
+  customOk?: (value: T) => R | Promise<R>;
 }
 
 /**
@@ -226,15 +226,35 @@ const defaultPropsAdapter = <T extends CustomOverlayProps>(
 
   // 包装 customOk，使其调用后自动触发关闭
   if (result.customOk) {
-    const originalCustomOk = result?.customOk;
-    result.customOk = ((value: unknown) => {
-      originalCustomOk?.(value);
-      state.onClose();
-    }) as T['customOk'];
+    result.customOk = wrapCustomOk(result.customOk, state.onClose) as T['customOk'];
   }
 
   return result;
 };
+
+/**
+ * 包装 customOk：同步成功立即关闭；Promise resolve 后关闭；抛错/reject 不关闭
+ */
+export function wrapCustomOk<TValue, TResult>(
+  customOk: ((value: TValue) => TResult | Promise<TResult>) | undefined,
+  onClose: () => void,
+): ((value: TValue) => TResult | Promise<TResult>) | undefined {
+  if (!customOk) return undefined;
+
+  return (value: TValue) => {
+    const result = customOk(value);
+
+    if (result instanceof Promise) {
+      return result.then((resolvedValue) => {
+        onClose();
+        return resolvedValue;
+      });
+    }
+
+    onClose();
+    return result;
+  };
+}
 
 // ============================================================================
 // 核心 Hook 实现

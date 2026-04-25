@@ -5,6 +5,7 @@ import { ConfigProvider, Space, Typography } from 'antd';
 import { BasicModalDemo } from './BasicModalDemo';
 import { BasicDrawerDemo } from './BasicDrawerDemo';
 import { BasicOverlayDemo } from './BasicOverlayDemo';
+import { AsyncCustomOkDemo } from './AsyncCustomOkDemo';
 
 import { AntdOverlayProvider } from '../src';
 
@@ -18,6 +19,7 @@ const App: React.FC = () => {
             <BasicModalDemo />
             <BasicDrawerDemo />
             <BasicOverlayDemo />
+            <AsyncCustomOkDemo />
           </Space>
         </div>
       </AntdOverlayProvider>
