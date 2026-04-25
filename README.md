@@ -137,6 +137,12 @@ function GlobalUsage() {
 
 `openModal(...)` 返回 `OverlayController`：可调用 `update` 传入要更新的字段（与当前已保存的 props 及 Hook 的 `defaultProps` **浅合并**，同名键以本次 `update` 入参为准）、`close` 关闭（会尊重动画配置）。
 
+`customOk` 关闭语义（适用于 `useOverlay` / `useModal` / `useDrawer`）：
+
+- 同步回调正常返回：自动关闭覆盖层
+- 异步回调 `Promise resolve`：在 Promise 完成后自动关闭覆盖层
+- 异步回调 `Promise reject` 或同步抛错：保持覆盖层打开，并将错误透传给调用方
+
 ## API
 
 ### Provider
@@ -238,9 +244,11 @@ const [openOverlay, holder] = useOverlay(MyOverlay, {
 interface CustomOverlayProps<T = any, R = void> {
   open?: boolean;
   customClose: () => void;
-  customOk?: (value: T) => R;
+  customOk?: (value: T) => R | Promise<R>;
 }
 ```
+
+如需本地验证异步行为，可运行 demo 中的 `AsyncCustomOkDemo`（包含 Overlay / Modal / Drawer 的异步成功与失败场景）。
 
 #### `CustomModalProps<T, R>` / `CustomDrawerProps<T, R>`
 
