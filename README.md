@@ -143,6 +143,17 @@ function GlobalUsage() {
 - 异步回调 `Promise resolve`：在 Promise 完成后自动关闭覆盖层
 - 异步回调 `Promise reject` 或同步抛错：保持覆盖层打开，并将错误透传给调用方
 
+## AI 使用指引
+
+为提高代码助手（Cursor/Copilot/Claude Code 等）对本库的调用正确率，建议优先读取以下文档：
+
+- `docs/ai/quick-reference.md`：最短调用路径与最小示例
+- `docs/ai/constraints.md`：前置条件、行为约束与错误语义
+- `docs/ai/api-manifest.json`：机器可读 API 清单
+- `docs/ai/contracts.json`：能力、约束、错误语义和推荐模板
+
+若 AI 生成的是全局 Hook（`useGlobalModal`、`useGlobalDrawer`、`useGlobalOverlay`）用法，务必同时生成 `AntdOverlayProvider` 包裹代码。
+
 ## API
 
 ### Provider

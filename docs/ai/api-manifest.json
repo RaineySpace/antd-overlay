@@ -1,0 +1,162 @@
+{
+  "name": "antd-overlay",
+  "manifestVersion": "1.0.0",
+  "docsVersion": "0.1.2",
+  "entrypoint": "antd-overlay",
+  "symbols": [
+    {
+      "name": "AntdOverlayProvider",
+      "kind": "component",
+      "signature": "AntdOverlayProvider(props: { children; defaultModalProps?; defaultDrawerProps? })",
+      "params": [
+        { "name": "children", "required": true, "type": "React.ReactNode" },
+        { "name": "defaultModalProps", "required": false, "type": "Partial<ModalProps>" },
+        { "name": "defaultDrawerProps", "required": false, "type": "Partial<DrawerProps>" }
+      ],
+      "returns": "JSX.Element",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "docs/ai/quick-reference.md"
+    },
+    {
+      "name": "useModal",
+      "kind": "hook",
+      "signature": "useModal<T>(Component, options?) => [openModal, holder]",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomModalProps>" },
+        { "name": "options", "required": false, "type": "UseModalOptions<T>" }
+      ],
+      "returns": "[OverlayOpener<T>, React.ReactNode]",
+      "preconditions": [],
+      "failureScenarios": [
+        {
+          "code": "INVALID_OVERLAY_CONTRACT",
+          "when": "传入组件未正确消费 open/customClose 导致行为异常"
+        }
+      ],
+      "recommendedDoc": "docs/ai/quick-reference.md"
+    },
+    {
+      "name": "useGlobalModal",
+      "kind": "hook",
+      "signature": "useGlobalModal<T>(Component, options?) => openModal",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomModalProps>" },
+        { "name": "options", "required": false, "type": "UseModalOptions<T>" }
+      ],
+      "returns": "OverlayOpener<T>",
+      "preconditions": ["必须在 AntdOverlayProvider 作用域中调用"],
+      "failureScenarios": [
+        {
+          "code": "PROVIDER_REQUIRED",
+          "when": "在 AntdOverlayProvider 外部调用 useGlobalModal"
+        }
+      ],
+      "recommendedDoc": "docs/ai/constraints.md"
+    },
+    {
+      "name": "useDrawer",
+      "kind": "hook",
+      "signature": "useDrawer<T>(Component, options?) => [openDrawer, holder]",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomDrawerProps>" },
+        { "name": "options", "required": false, "type": "UseDrawerOptions<T>" }
+      ],
+      "returns": "[OverlayOpener<T>, React.ReactNode]",
+      "preconditions": [],
+      "failureScenarios": [
+        {
+          "code": "INVALID_OVERLAY_CONTRACT",
+          "when": "传入组件未正确消费 open/customClose 导致行为异常"
+        }
+      ],
+      "recommendedDoc": "docs/ai/quick-reference.md"
+    },
+    {
+      "name": "useGlobalDrawer",
+      "kind": "hook",
+      "signature": "useGlobalDrawer<T>(Component, options?) => openDrawer",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomDrawerProps>" },
+        { "name": "options", "required": false, "type": "UseDrawerOptions<T>" }
+      ],
+      "returns": "OverlayOpener<T>",
+      "preconditions": ["必须在 AntdOverlayProvider 作用域中调用"],
+      "failureScenarios": [
+        {
+          "code": "PROVIDER_REQUIRED",
+          "when": "在 AntdOverlayProvider 外部调用 useGlobalDrawer"
+        }
+      ],
+      "recommendedDoc": "docs/ai/constraints.md"
+    },
+    {
+      "name": "useOverlay",
+      "kind": "hook",
+      "signature": "useOverlay<T>(Component, options?) => [openOverlay, holder]",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomOverlayProps>" },
+        { "name": "options", "required": false, "type": "UseOverlayOptions<T>" }
+      ],
+      "returns": "[OverlayOpener<T>, React.ReactNode]",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "docs/ai/quick-reference.md"
+    },
+    {
+      "name": "useGlobalOverlay",
+      "kind": "hook",
+      "signature": "useGlobalOverlay<T>(Component, options?) => openOverlay",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomOverlayProps>" },
+        { "name": "options", "required": false, "type": "UseOverlayOptions<T>" }
+      ],
+      "returns": "OverlayOpener<T>",
+      "preconditions": ["必须在 AntdOverlayProvider 作用域中调用"],
+      "failureScenarios": [
+        {
+          "code": "PROVIDER_REQUIRED",
+          "when": "在 AntdOverlayProvider 外部调用 useGlobalOverlay"
+        }
+      ],
+      "recommendedDoc": "docs/ai/constraints.md"
+    },
+    {
+      "name": "generateUseModalHook",
+      "kind": "factory",
+      "signature": "generateUseModalHook<T>(Component) => { useModal, useGlobalModal }",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomModalProps>" }
+      ],
+      "returns": "{ useModal(options?), useGlobalModal(options?) }",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "README.md"
+    },
+    {
+      "name": "generateUseDrawerHook",
+      "kind": "factory",
+      "signature": "generateUseDrawerHook<T>(Component) => { useDrawer, useGlobalDrawer }",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomDrawerProps>" }
+      ],
+      "returns": "{ useDrawer(options?), useGlobalDrawer(options?) }",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "README.md"
+    },
+    {
+      "name": "generateUseOverlayHook",
+      "kind": "factory",
+      "signature": "generateUseOverlayHook<T>(Component, defaultOptions?) => { useOverlay, useGlobalOverlay }",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomOverlayProps>" },
+        { "name": "defaultOptions", "required": false, "type": "UseOverlayOptions<T>" }
+      ],
+      "returns": "{ useOverlay(options?), useGlobalOverlay(options?) }",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "README.md"
+    }
+  ]
+}

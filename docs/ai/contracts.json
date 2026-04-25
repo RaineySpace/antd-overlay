@@ -1,0 +1,63 @@
+{
+  "name": "antd-overlay-ai-contracts",
+  "version": "1.0.0",
+  "package": "antd-overlay",
+  "capabilities": [
+    "imperative-open-close-overlay",
+    "update-overlay-props-via-controller",
+    "global-overlay-hosting-via-provider",
+    "async-custom-ok-auto-close-on-resolve"
+  ],
+  "constraints": [
+    {
+      "code": "PROVIDER_REQUIRED",
+      "rule": "useGlobalModal/useGlobalDrawer/useGlobalOverlay 必须在 AntdOverlayProvider 作用域内调用"
+    },
+    {
+      "code": "OVERLAY_COMPONENT_CONTRACT",
+      "rule": "自定义组件必须消费 open 与 customClose，且 customOk 应由确认行为触发"
+    },
+    {
+      "code": "UPDATE_SHALLOW_MERGE",
+      "rule": "controller.update 使用浅合并，不进行深层对象合并"
+    }
+  ],
+  "errorSemantics": [
+    {
+      "code": "PROVIDER_REQUIRED",
+      "type": "runtime-throw",
+      "trigger": "全局 Hook 在 Provider 外调用",
+      "fix": "在应用入口包裹 AntdOverlayProvider"
+    },
+    {
+      "code": "CUSTOM_OK_REJECTED",
+      "type": "behavior",
+      "trigger": "customOk 抛错或 Promise reject",
+      "result": "覆盖层保持打开，错误透传"
+    },
+    {
+      "code": "UPDATE_SHALLOW_MERGE",
+      "type": "behavior",
+      "trigger": "调用 controller.update",
+      "result": "defaultProps < prevProps < nextProps（浅合并）"
+    }
+  ],
+  "recommendedTemplates": {
+    "globalModal": {
+      "providerRequired": true,
+      "snippet": "const openModal = useGlobalModal(Component); openModal({ ...props });"
+    },
+    "localModal": {
+      "providerRequired": false,
+      "snippet": "const [openModal, holder] = useModal(Component); openModal({ ...props });"
+    },
+    "controllerUpdate": {
+      "snippet": "const controller = openModal(init); controller.update(next); controller.close();"
+    }
+  },
+  "docs": {
+    "quickReference": "docs/ai/quick-reference.md",
+    "constraints": "docs/ai/constraints.md",
+    "apiManifest": "docs/ai/api-manifest.json"
+  }
+}

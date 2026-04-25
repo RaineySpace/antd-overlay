@@ -1,5 +1,21 @@
 # antd-overlay
 
+## 0.2.0
+
+### Minor Changes
+
+- 新增 AI 友好文档与机器可读契约清单，帮助代码助手更稳定地理解并调用 antd-overlay 能力。
+
+  主要内容：
+  - 新增 `docs/ai/quick-reference.md` 与 `docs/ai/constraints.md`
+  - 新增 `docs/ai/api-manifest.json` 与 `docs/ai/contracts.json`
+  - 在 `package.json` 中暴露 `./ai/*` 文档与清单路径，并将 `docs/ai` 纳入发布文件
+  - 新增 `validate:ai-docs` 校验脚本，保证 AI 文档与清单结构完整
+
+### Patch Changes
+
+- 增加 AI 友好文档与机器可读契约清单
+
 ## 0.1.2
 
 ### Patch Changes
