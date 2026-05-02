@@ -80,7 +80,7 @@ export type UseModalOptions<T extends CustomModalProps = CustomModalProps> = Omi
  * @param defaultProps - 默认 Modal 属性
  * @returns 属性适配器函数
  */
-const createModalPropsAdapter = <T extends CustomModalProps>(
+export const createModalPropsAdapter = <T extends CustomModalProps>(
   defaultProps?: DefaultModalProps,
 ) => {
   return (

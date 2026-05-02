@@ -6,7 +6,8 @@
     "imperative-open-close-overlay",
     "update-overlay-props-via-controller",
     "global-overlay-hosting-via-provider",
-    "async-custom-ok-auto-close-on-resolve"
+    "async-custom-ok-auto-close-on-resolve",
+    "imperative-await-overlay-result-via-promise"
   ],
   "constraints": [
     {
@@ -20,6 +21,10 @@
     {
       "code": "UPDATE_SHALLOW_MERGE",
       "rule": "controller.update 使用浅合并，不进行深层对象合并"
+    },
+    {
+      "code": "PROMISE_RESOLVES_WITH_INPUT",
+      "rule": "usePromise* 系列：外层 Promise 解析为 customOk 的入参（value），不是 customOk 的返回值"
     }
   ],
   "errorSemantics": [
@@ -40,6 +45,18 @@
       "type": "behavior",
       "trigger": "调用 controller.update",
       "result": "defaultProps < prevProps < nextProps（浅合并）"
+    },
+    {
+      "code": "PROMISE_RESOLVED_ON_CLOSE",
+      "type": "behavior",
+      "trigger": "通过 customClose / 蒙层 / antd 取消按钮 / 组件卸载 关闭 usePromise* 系列覆盖层",
+      "result": "外层 Promise 以 undefined resolve（不 reject）"
+    },
+    {
+      "code": "PROMISE_PREEMPTED_BY_REOPEN",
+      "type": "behavior",
+      "trigger": "在前一个 Promise 未结算时再次调用同一 hook 实例的 openPromise",
+      "result": "前一个 Promise 立即以 undefined resolve，新 Promise 接管"
     }
   ],
   "recommendedTemplates": {
@@ -53,6 +70,14 @@
     },
     "controllerUpdate": {
       "snippet": "const controller = openModal(init); controller.update(next); controller.close();"
+    },
+    "promiseModal": {
+      "providerRequired": false,
+      "snippet": "const [openPromise, holder] = usePromiseModal(Component); const v = await openPromise({ ...props }); if (v === undefined) return; /* 用户取消 */"
+    },
+    "promiseDrawer": {
+      "providerRequired": false,
+      "snippet": "const [openPromise, holder] = usePromiseDrawer(Component); const v = await openPromise({ ...props }); if (v === undefined) return; /* 用户取消 */"
     }
   },
   "docs": {

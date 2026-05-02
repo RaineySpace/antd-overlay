@@ -51,8 +51,33 @@
 
 错误语义码：`UPDATE_SHALLOW_MERGE`
 
+## Promise 行为语义（usePromiseOverlay / usePromiseModal / usePromiseDrawer）
+
+### 解析规则
+
+- `customOk(value)` 同步返回 → 外层 Promise resolve **value（入参，非 customOk 返回值）**
+- `customOk(value)` 异步 resolve → 在 customOk 的 Promise 完成后 resolve(value)
+- 任何其他关闭路径（`customClose` / 蒙层 / antd 取消按钮 / 组件卸载 / 同实例再次 `openPromise` 抢占）→ resolve `undefined`
+- `customOk` 抛错或 Promise reject → Promise 以同一错误 **reject**，覆盖层 **保持打开**
+- 单次 `openPromise` 的 Promise 仅结算一次（幂等）
+- 解析时机为决策时刻，不等待关闭动画
+
+### 错误语义码
+
+- `PROMISE_RESOLVES_WITH_INPUT` — 解析值为 customOk 入参，不是返回值
+- `PROMISE_RESOLVED_ON_CLOSE` — 任意非 OK 关闭 → resolve(undefined)，不 reject
+- `PROMISE_PREEMPTED_BY_REOPEN` — 再次 open 抢占式 resolve 前一个 Promise
+- `CUSTOM_OK_REJECTED` — customOk 抛错 / reject 透传，覆盖层不关闭
+
+### AI 易错点
+
+- 不要假设关闭等同于 reject —— 取消应该用 `if (result === undefined) return;` 判断
+- 不要把 `customOk` 的返回值当成 Promise 的解析值 —— 解析值始终是入参 `value`
+- 不要为了 “等动画完成再继续” 把 `await` 之后的代码放进 `setTimeout` —— Promise 已经在决策时刻 resolve
+
 ## AI 生成代码建议
 
 - 优先生成 `useModal` 或 `useDrawer`，仅在通用组件时使用 `useOverlay`
+- 业务流程中需要 `await` 用户结果时优先生成 `usePromiseModal` / `usePromiseDrawer`
 - 使用全局 Hook 时必须同时输出 Provider 包裹代码
 - 避免在 `customOk` 内重复手动 `close`，除非明确要覆盖默认关闭时机

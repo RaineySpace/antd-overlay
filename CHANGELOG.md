@@ -1,5 +1,20 @@
 # antd-overlay
 
+## 0.3.0
+
+### Minor Changes
+
+- 新增 Promise 风格的命令式 Hook 家族：`usePromiseOverlay` / `useGlobalPromiseOverlay` / `generateUsePromiseOverlayHook`，以及对应的 Modal / Drawer 三件套（`usePromiseModal` / `useGlobalPromiseModal` / `generateUsePromiseModalHook`、`usePromiseDrawer` / `useGlobalPromiseDrawer` / `generateUsePromiseDrawerHook`）。
+
+  行为契约：
+  - `customOk(value)` 同步成功 → Promise resolve **value（入参，非 customOk 返回值）**
+  - `customOk` 异步 resolve → resolve 后 Promise resolve(value)
+  - `customOk` 抛错 / Promise reject → Promise 以同一错误 reject，覆盖层保持打开
+  - 任意非 OK 关闭路径（customClose / 蒙层 / antd 取消 / 组件卸载 / 同实例再次 open 抢占）→ Promise resolve(undefined)
+  - Promise 仅结算一次（幂等）；解析时机为决策时刻，不等待关闭动画
+
+- 新增 Promise 风格的命令式 Hook 家族
+
 ## 0.2.0
 
 ### Minor Changes

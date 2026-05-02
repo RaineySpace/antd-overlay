@@ -65,6 +65,15 @@ const main = async () => {
     'generateUseModalHook',
     'generateUseDrawerHook',
     'generateUseOverlayHook',
+    'usePromiseOverlay',
+    'useGlobalPromiseOverlay',
+    'generateUsePromiseOverlayHook',
+    'usePromiseModal',
+    'useGlobalPromiseModal',
+    'generateUsePromiseModalHook',
+    'usePromiseDrawer',
+    'useGlobalPromiseDrawer',
+    'generateUsePromiseDrawerHook',
   ];
 
   const symbolSet = new Set(manifest.symbols.map((item) => item.name));

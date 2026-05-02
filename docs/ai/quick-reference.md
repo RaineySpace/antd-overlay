@@ -72,3 +72,41 @@ controller.close();
 - 使用 `useGlobalModal/useGlobalDrawer/useGlobalOverlay` 时，必须存在 `AntdOverlayProvider`
 - 自定义组件需要消费 `open` 与 `customClose`
 - 覆盖层确认动作优先通过 `customOk` 触发，避免自行关闭与业务状态不同步
+
+## 6) Promise 模式（await customOk 入参）
+
+适用场景：业务方希望在调用处直接 `await` 拿到用户的确认结果。
+
+```tsx
+import { usePromiseModal, CustomModalProps } from 'antd-overlay';
+import { Modal } from 'antd';
+
+interface ConfirmModalProps extends CustomModalProps<{ value: string }> {
+  initialValue?: string;
+}
+
+const ConfirmModal: React.FC<ConfirmModalProps> = ({ open, customClose, customOk, initialValue }) => (
+  <Modal open={open} onCancel={customClose} onOk={() => customOk?.({ value: initialValue ?? '' })}>
+    confirm
+  </Modal>
+);
+
+function Page() {
+  const [openConfirm, holder] = usePromiseModal(ConfirmModal);
+
+  const handle = async () => {
+    const result = await openConfirm({ initialValue: 'hello' });
+    if (result === undefined) return; // 用户取消 / 关闭
+    console.log(result.value);         // customOk 入参
+  };
+
+  return <>{holder}<button onClick={handle}>open</button></>;
+}
+```
+
+行为契约（同样适用于 `usePromiseDrawer` / `usePromiseOverlay` 与对应的 `useGlobalPromise*` / `generateUsePromise*Hook`）：
+
+- `customOk(value)` 同步成功 → Promise resolve **value（入参）**；异步 resolve 同理
+- 任意非 OK 关闭路径（`customClose` / 蒙层 / 取消按钮 / 组件卸载 / 同实例再次 open 抢占）→ Promise resolve `undefined`
+- `customOk` 抛错或 Promise reject → Promise 以同一错误 reject，覆盖层保持打开
+- Promise 仅结算一次（幂等）；解析时机为决策时刻，不等待关闭动画

@@ -1,7 +1,7 @@
 {
   "name": "antd-overlay",
   "manifestVersion": "1.0.0",
-  "docsVersion": "0.1.2",
+  "docsVersion": "0.3.0",
   "entrypoint": "antd-overlay",
   "symbols": [
     {
@@ -154,6 +154,171 @@
         { "name": "defaultOptions", "required": false, "type": "UseOverlayOptions<T>" }
       ],
       "returns": "{ useOverlay(options?), useGlobalOverlay(options?) }",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "README.md"
+    },
+    {
+      "name": "usePromiseOverlay",
+      "kind": "hook",
+      "signature": "usePromiseOverlay<T>(Component, options?) => [openPromise, holder]",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomOverlayProps>" },
+        { "name": "options", "required": false, "type": "UsePromiseOverlayOptions<T>" }
+      ],
+      "returns": "[PromiseOverlayOpener<T>, React.ReactNode]",
+      "preconditions": [],
+      "failureScenarios": [
+        {
+          "code": "CUSTOM_OK_REJECTED",
+          "when": "用户传入的 customOk 抛错或 Promise reject"
+        }
+      ],
+      "recommendedDoc": "docs/ai/quick-reference.md"
+    },
+    {
+      "name": "useGlobalPromiseOverlay",
+      "kind": "hook",
+      "signature": "useGlobalPromiseOverlay<T>(Component, options?) => openPromise",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomOverlayProps>" },
+        { "name": "options", "required": false, "type": "UsePromiseOverlayOptions<T>" }
+      ],
+      "returns": "PromiseOverlayOpener<T>",
+      "preconditions": ["必须在 AntdOverlayProvider 作用域中调用"],
+      "failureScenarios": [
+        {
+          "code": "PROVIDER_REQUIRED",
+          "when": "在 AntdOverlayProvider 外部调用 useGlobalPromiseOverlay"
+        },
+        {
+          "code": "CUSTOM_OK_REJECTED",
+          "when": "用户传入的 customOk 抛错或 Promise reject"
+        }
+      ],
+      "recommendedDoc": "docs/ai/constraints.md"
+    },
+    {
+      "name": "generateUsePromiseOverlayHook",
+      "kind": "factory",
+      "signature": "generateUsePromiseOverlayHook<T>(Component, defaultOptions?) => { usePromiseOverlay, useGlobalPromiseOverlay }",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomOverlayProps>" },
+        { "name": "defaultOptions", "required": false, "type": "UsePromiseOverlayOptions<T>" }
+      ],
+      "returns": "{ usePromiseOverlay(options?), useGlobalPromiseOverlay(options?) }",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "README.md"
+    },
+    {
+      "name": "usePromiseModal",
+      "kind": "hook",
+      "signature": "usePromiseModal<T>(Component, options?) => [openPromise, holder]",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomModalProps>" },
+        { "name": "options", "required": false, "type": "UsePromiseModalOptions<T>" }
+      ],
+      "returns": "[PromiseOverlayOpener<T>, React.ReactNode]",
+      "preconditions": [],
+      "failureScenarios": [
+        {
+          "code": "INVALID_OVERLAY_CONTRACT",
+          "when": "传入组件未正确消费 open/customClose 导致行为异常"
+        },
+        {
+          "code": "CUSTOM_OK_REJECTED",
+          "when": "用户传入的 customOk 抛错或 Promise reject"
+        }
+      ],
+      "recommendedDoc": "docs/ai/quick-reference.md"
+    },
+    {
+      "name": "useGlobalPromiseModal",
+      "kind": "hook",
+      "signature": "useGlobalPromiseModal<T>(Component, options?) => openPromise",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomModalProps>" },
+        { "name": "options", "required": false, "type": "UsePromiseModalOptions<T>" }
+      ],
+      "returns": "PromiseOverlayOpener<T>",
+      "preconditions": ["必须在 AntdOverlayProvider 作用域中调用"],
+      "failureScenarios": [
+        {
+          "code": "PROVIDER_REQUIRED",
+          "when": "在 AntdOverlayProvider 外部调用 useGlobalPromiseModal"
+        },
+        {
+          "code": "CUSTOM_OK_REJECTED",
+          "when": "用户传入的 customOk 抛错或 Promise reject"
+        }
+      ],
+      "recommendedDoc": "docs/ai/constraints.md"
+    },
+    {
+      "name": "generateUsePromiseModalHook",
+      "kind": "factory",
+      "signature": "generateUsePromiseModalHook<T>(Component) => { usePromiseModal, useGlobalPromiseModal }",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomModalProps>" }
+      ],
+      "returns": "{ usePromiseModal(options?), useGlobalPromiseModal(options?) }",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "README.md"
+    },
+    {
+      "name": "usePromiseDrawer",
+      "kind": "hook",
+      "signature": "usePromiseDrawer<T>(Component, options?) => [openPromise, holder]",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomDrawerProps>" },
+        { "name": "options", "required": false, "type": "UsePromiseDrawerOptions<T>" }
+      ],
+      "returns": "[PromiseOverlayOpener<T>, React.ReactNode]",
+      "preconditions": [],
+      "failureScenarios": [
+        {
+          "code": "INVALID_OVERLAY_CONTRACT",
+          "when": "传入组件未正确消费 open/customClose 导致行为异常"
+        },
+        {
+          "code": "CUSTOM_OK_REJECTED",
+          "when": "用户传入的 customOk 抛错或 Promise reject"
+        }
+      ],
+      "recommendedDoc": "docs/ai/quick-reference.md"
+    },
+    {
+      "name": "useGlobalPromiseDrawer",
+      "kind": "hook",
+      "signature": "useGlobalPromiseDrawer<T>(Component, options?) => openPromise",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomDrawerProps>" },
+        { "name": "options", "required": false, "type": "UsePromiseDrawerOptions<T>" }
+      ],
+      "returns": "PromiseOverlayOpener<T>",
+      "preconditions": ["必须在 AntdOverlayProvider 作用域中调用"],
+      "failureScenarios": [
+        {
+          "code": "PROVIDER_REQUIRED",
+          "when": "在 AntdOverlayProvider 外部调用 useGlobalPromiseDrawer"
+        },
+        {
+          "code": "CUSTOM_OK_REJECTED",
+          "when": "用户传入的 customOk 抛错或 Promise reject"
+        }
+      ],
+      "recommendedDoc": "docs/ai/constraints.md"
+    },
+    {
+      "name": "generateUsePromiseDrawerHook",
+      "kind": "factory",
+      "signature": "generateUsePromiseDrawerHook<T>(Component) => { usePromiseDrawer, useGlobalPromiseDrawer }",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomDrawerProps>" }
+      ],
+      "returns": "{ usePromiseDrawer(options?), useGlobalPromiseDrawer(options?) }",
       "preconditions": [],
       "failureScenarios": [],
       "recommendedDoc": "README.md"

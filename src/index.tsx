@@ -127,3 +127,35 @@ export { useModal, useGlobalModal, generateUseModalHook } from './useModal';
 export type { CustomDrawerProps, UseDrawerOptions } from './useDrawer';
 
 export { useDrawer, useGlobalDrawer, generateUseDrawerHook } from './useDrawer';
+
+// ============================================================================
+// Promise 版 Hook - 命令式 await 取值
+// ============================================================================
+
+export type {
+  CustomOkValue,
+  PromiseOverlayOpener,
+  UsePromiseOverlayOptions,
+} from './usePromiseOverlay';
+
+export {
+  usePromiseOverlay,
+  useGlobalPromiseOverlay,
+  generateUsePromiseOverlayHook,
+} from './usePromiseOverlay';
+
+export type { UsePromiseModalOptions } from './usePromiseModal';
+
+export {
+  usePromiseModal,
+  useGlobalPromiseModal,
+  generateUsePromiseModalHook,
+} from './usePromiseModal';
+
+export type { UsePromiseDrawerOptions } from './usePromiseDrawer';
+
+export {
+  usePromiseDrawer,
+  useGlobalPromiseDrawer,
+  generateUsePromiseDrawerHook,
+} from './usePromiseDrawer';

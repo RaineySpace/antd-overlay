@@ -81,7 +81,7 @@ export type UseDrawerOptions<T extends CustomDrawerProps = CustomDrawerProps> = 
  * @param defaultProps - 默认 Drawer 属性
  * @returns 属性适配器函数
  */
-const createDrawerPropsAdapter = <T extends CustomDrawerProps>(
+export const createDrawerPropsAdapter = <T extends CustomDrawerProps>(
   defaultProps?: DefaultDrawerProps,
 ) => {
   return (

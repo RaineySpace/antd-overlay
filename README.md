@@ -247,6 +247,77 @@ const [openOverlay, holder] = useOverlay(MyOverlay, {
 
 生成绑定组件的 `useOverlay` / `useGlobalOverlay`；调用时可再传 `options` 与 `defaultOptions` 浅合并。
 
+### Promise Hooks
+
+如果业务流程希望在调用处直接 `await` 用户的确认结果，使用 Promise 版本：
+
+- `usePromiseOverlay<T>(Component, options?) => [openPromise, holder]`
+- `useGlobalPromiseOverlay<T>(Component, options?) => openPromise`
+- `generateUsePromiseOverlayHook<T>(Component, defaultOptions?) => { usePromiseOverlay, useGlobalPromiseOverlay }`
+- `usePromiseModal<T>(Component, options?) => [openPromise, holder]`
+- `useGlobalPromiseModal<T>(Component, options?) => openPromise`
+- `generateUsePromiseModalHook<T>(Component) => { usePromiseModal, useGlobalPromiseModal }`
+- `usePromiseDrawer<T>(Component, options?) => [openPromise, holder]`
+- `useGlobalPromiseDrawer<T>(Component, options?) => openPromise`
+- `generateUsePromiseDrawerHook<T>(Component) => { usePromiseDrawer, useGlobalPromiseDrawer }`
+
+`openPromise(initialize?)` 返回 `Promise<V | undefined>`，`V` 由组件 `CustomOverlayProps<V>` 的 `customOk` 入参类型推断。
+
+**行为契约：**
+
+| 场景 | 外层 Promise | 覆盖层 |
+| --- | --- | --- |
+| `customOk(value)` 同步成功 | `resolve(value)` —— 入参，非 customOk 返回值 | 自动关闭 |
+| `customOk(value)` 异步 resolve | resolve 后 `resolve(value)` | 自动关闭 |
+| `customOk` 同步抛错 / 异步 reject | `reject(error)`，错误透传给 `await` 调用方 | **保持打开** |
+| `customClose` / antd 取消按钮 / 蒙层 / esc | `resolve(undefined)` | 自动关闭 |
+| 同一 hook 实例再次 `openPromise` | 前一个 Promise 立即 `resolve(undefined)` | 旧覆盖层被新一次打开覆盖 |
+| 调用 `usePromise*` 的组件卸载 | `resolve(undefined)` | — |
+
+Promise 仅结算一次（幂等）；解析时机为决策时刻，**不等待关闭动画**。
+
+```tsx
+import { usePromiseModal, CustomModalProps } from 'antd-overlay';
+import { Modal } from 'antd';
+
+interface ConfirmModalProps extends CustomModalProps<{ value: string }> {
+  initialValue?: string;
+}
+
+const ConfirmModal: React.FC<ConfirmModalProps> = ({
+  open,
+  customClose,
+  customOk,
+  initialValue = '',
+}) => {
+  const [value, setValue] = React.useState(initialValue);
+  return (
+    <Modal open={open} onCancel={customClose} onOk={() => customOk?.({ value })}>
+      <input value={value} onChange={(e) => setValue(e.target.value)} />
+    </Modal>
+  );
+};
+
+function Page() {
+  const [openConfirm, holder] = usePromiseModal(ConfirmModal);
+
+  const handleClick = async () => {
+    const result = await openConfirm({ initialValue: 'hello' });
+    if (result === undefined) return; // 用户取消 / 关闭
+    console.log(result.value);
+  };
+
+  return (
+    <>
+      <button onClick={handleClick}>Open</button>
+      {holder}
+    </>
+  );
+}
+```
+
+如需在 `customOk` 中做异步校验：抛错 / reject 即可让 `await` 进入 `catch`，覆盖层会保持打开供用户修改后重新提交。
+
 ### 类型定义
 
 #### `CustomOverlayProps<T, R>`

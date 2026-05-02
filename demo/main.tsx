@@ -6,6 +6,7 @@ import { BasicModalDemo } from './BasicModalDemo';
 import { BasicDrawerDemo } from './BasicDrawerDemo';
 import { BasicOverlayDemo } from './BasicOverlayDemo';
 import { AsyncCustomOkDemo } from './AsyncCustomOkDemo';
+import { PromiseOverlayDemo } from './PromiseOverlayDemo';
 
 import { AntdOverlayProvider } from '../src';
 
@@ -20,6 +21,7 @@ const App: React.FC = () => {
             <BasicDrawerDemo />
             <BasicOverlayDemo />
             <AsyncCustomOkDemo />
+            <PromiseOverlayDemo />
           </Space>
         </div>
       </AntdOverlayProvider>
@@ -32,4 +34,3 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <App />
   </React.StrictMode>,
 );
-
