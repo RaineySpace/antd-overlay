@@ -7,12 +7,13 @@
     "update-overlay-props-via-controller",
     "global-overlay-hosting-via-provider",
     "async-custom-ok-auto-close-on-resolve",
+    "imperative-tour-open-close",
     "imperative-await-overlay-result-via-promise"
   ],
   "constraints": [
     {
       "code": "PROVIDER_REQUIRED",
-      "rule": "useGlobalModal/useGlobalDrawer/useGlobalOverlay 必须在 AntdOverlayProvider 作用域内调用"
+      "rule": "useGlobalModal/useGlobalDrawer/useGlobalTour/useGlobalOverlay 必须在 AntdOverlayProvider 作用域内调用"
     },
     {
       "code": "OVERLAY_COMPONENT_CONTRACT",
@@ -25,6 +26,10 @@
     {
       "code": "PROMISE_RESOLVES_WITH_INPUT",
       "rule": "usePromise* 系列：外层 Promise 解析为 customOk 的入参（value），不是 customOk 的返回值"
+    },
+    {
+      "code": "TOUR_NO_PROMISE_API",
+      "rule": "Tour 仅提供 useTour/useGlobalTour/generateUseTourHook，不提供 usePromiseTour"
     }
   ],
   "errorSemantics": [
@@ -78,6 +83,14 @@
     "promiseDrawer": {
       "providerRequired": false,
       "snippet": "const [openPromise, holder] = usePromiseDrawer(Component); const v = await openPromise({ ...props }); if (v === undefined) return; /* 用户取消 */"
+    },
+    "localTour": {
+      "providerRequired": false,
+      "snippet": "const [openTour, holder] = useTour(Component); openTour({ steps });"
+    },
+    "globalTour": {
+      "providerRequired": true,
+      "snippet": "const openTour = useGlobalTour(Component); openTour({ steps });"
     }
   },
   "docs": {

@@ -1,6 +1,6 @@
 # antd-overlay
 
-Ant Design Modal/Drawer 命令式调用方案。
+Ant Design Modal/Drawer/Tour 命令式调用方案。
 
 [![npm version](https://img.shields.io/npm/v/antd-overlay.svg)](https://www.npmjs.com/package/antd-overlay)
 [![license](https://img.shields.io/npm/l/antd-overlay.svg)](https://github.com/RaineySpace/antd-overlay/blob/main/LICENSE)
@@ -8,7 +8,7 @@ Ant Design Modal/Drawer 命令式调用方案。
 ## 特性
 
 - 🚀 **命令式调用** - 通过函数调用打开/关闭覆盖层，无需在业务里维护 `open` 状态
-- 🎨 **动画支持** - 正确处理打开/关闭动画（Modal 使用 `afterClose`，Drawer 使用 `afterOpenChange`），避免动画未完成就卸载
+- 🎨 **动画支持** - 正确处理打开/关闭动画（Modal 使用 `afterClose`，Drawer 使用 `afterOpenChange`；Tour 默认直接卸载）
 - 🌍 **全局挂载** - 支持跨组件调用，覆盖层挂载到 `AntdOverlayProvider` 统一容器
 - 📦 **类型安全** - 完整的 TypeScript 类型支持
 - 🔧 **灵活扩展** - `useOverlay` + `propsAdapter` 可对接自定义覆盖层组件
@@ -38,7 +38,7 @@ yarn add antd-overlay
 
 ```bash
 pnpm install
-pnpm dev:demo    # 启动 Vite 演示（demo/：Modal / Drawer / useOverlay）
+pnpm dev:demo    # 启动 Vite 演示（demo/：Modal / Drawer / Tour / useOverlay）
 pnpm build       # 使用 tsup 构建 dist
 pnpm typecheck   # TypeScript 检查
 ```
@@ -137,7 +137,7 @@ function GlobalUsage() {
 
 `openModal(...)` 返回 `OverlayController`：可调用 `update` 传入要更新的字段（与当前已保存的 props 及 Hook 的 `defaultProps` **浅合并**，同名键以本次 `update` 入参为准）、`close` 关闭（会尊重动画配置）。
 
-`customOk` 关闭语义（适用于 `useOverlay` / `useModal` / `useDrawer`）：
+`customOk` 关闭语义（适用于 `useOverlay` / `useModal` / `useDrawer` / `useTour`）：
 
 - 同步回调正常返回：自动关闭覆盖层
 - 异步回调 `Promise resolve`：在 Promise 完成后自动关闭覆盖层
@@ -152,7 +152,7 @@ function GlobalUsage() {
 - `docs/ai/api-manifest.json`：机器可读 API 清单
 - `docs/ai/contracts.json`：能力、约束、错误语义和推荐模板
 
-若 AI 生成的是全局 Hook（`useGlobalModal`、`useGlobalDrawer`、`useGlobalOverlay`）用法，务必同时生成 `AntdOverlayProvider` 包裹代码。
+若 AI 生成的是全局 Hook（`useGlobalModal`、`useGlobalDrawer`、`useGlobalTour`、`useGlobalOverlay`）用法，务必同时生成 `AntdOverlayProvider` 包裹代码。
 
 ## API
 
@@ -167,11 +167,13 @@ function GlobalUsage() {
 - `children: React.ReactNode`
 - `defaultModalProps?: Partial<ModalProps>` — 默认 Modal 属性，与每次 `open` / `update` 传入的 props 合并（传入方优先）
 - `defaultDrawerProps?: Partial<DrawerProps>` — 同上，作用于 Drawer
+- `defaultTourProps?: Partial<TourProps>` — 同上，作用于 Tour
 
 ```tsx
 <AntdOverlayProvider
   defaultModalProps={{ centered: true, maskClosable: false }}
   defaultDrawerProps={{ width: 600 }}
+  defaultTourProps={{ mask: true }}
 >
   <App />
 </AntdOverlayProvider>
@@ -179,7 +181,7 @@ function GlobalUsage() {
 
 #### `useAntdOverlayContext()`
 
-读取 Context（含 `holders`、`addHolder`、`removeHolder` 及默认 Modal/Drawer 配置）。**必须在 `AntdOverlayProvider` 内使用**；一般供扩展或库内集成，业务侧很少直接使用。
+读取 Context（含 `holders`、`addHolder`、`removeHolder` 及默认 Modal/Drawer/Tour 配置）。**必须在 `AntdOverlayProvider` 内使用**；一般供扩展或库内集成，业务侧很少直接使用。
 
 ### Modal Hooks
 
@@ -219,6 +221,58 @@ export const {
 #### `generateUseDrawerHook<T>(Component)`
 
 生成 `{ useDrawer, useGlobalDrawer }`。
+
+### Tour Hooks
+
+#### `useTour<T>(Component, options?)` / `useGlobalTour<T>(Component, options?)`
+
+语义与 Modal / Drawer 侧相同，选项类型为 `UseTourOptions<T>`（`T` 由 Tour 组件推断；同样支持 `animation`、`defaultProps`、顶层 Tour 属性及组件自定义扩展字段）。
+
+Tour 没有类似 Modal `afterClose` 或 Drawer `afterOpenChange` 的关闭动画完成回调，因此 `useTour` / `useGlobalTour` 默认使用 `animation: false`，关闭时直接卸载；如调用方显式传入 `animation`，会尊重传入值。
+
+```tsx
+import { Tour } from 'antd';
+import { CustomTourProps, useTour } from 'antd-overlay';
+
+const GuideTour: React.FC<CustomTourProps> = ({ customClose, customOk, ...props }) => {
+  void customClose;
+  void customOk;
+  return <Tour {...props} />;
+};
+
+function Page() {
+  const targetRef = React.useRef<HTMLButtonElement>(null);
+  const [openTour, holder] = useTour(GuideTour, {
+    mask: true,
+  });
+
+  return (
+    <>
+      <button
+        ref={targetRef}
+        onClick={() =>
+          openTour({
+            steps: [
+              {
+                title: '第一步',
+                description: '这里是引导内容',
+                target: () => targetRef.current,
+              },
+            ],
+          })
+        }
+      >
+        打开 Tour
+      </button>
+      {holder}
+    </>
+  );
+}
+```
+
+#### `generateUseTourHook<T>(Component)`
+
+生成 `{ useTour, useGlobalTour }`。
 
 ### 通用 Overlay Hooks
 
@@ -332,9 +386,9 @@ interface CustomOverlayProps<T = any, R = void> {
 
 如需本地验证异步行为，可运行 demo 中的 `AsyncCustomOkDemo`（包含 Overlay / Modal / Drawer 的异步成功与失败场景）。
 
-#### `CustomModalProps<T, R>` / `CustomDrawerProps<T, R>`
+#### `CustomModalProps<T, R>` / `CustomDrawerProps<T, R>` / `CustomTourProps<T, R>`
 
-分别为 `ModalProps` / `DrawerProps` 与 `CustomOverlayProps` 的交叉类型。
+分别为 `ModalProps` / `DrawerProps` / `TourProps` 与 `CustomOverlayProps` 的交叉类型。
 
 #### `InternalOverlayProps<T>`
 
@@ -527,7 +581,7 @@ function ProgressModal() {
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    useModal / useDrawer                 │  业务层封装
+│               useModal / useDrawer / useTour            │  业务层封装
 ├─────────────────────────────────────────────────────────┤
 │              useOverlay / useGlobalOverlay              │  核心逻辑层
 ├─────────────────────────────────────────────────────────┤

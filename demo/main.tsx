@@ -4,6 +4,7 @@ import { ConfigProvider, Space, Typography } from 'antd';
 
 import { BasicModalDemo } from './BasicModalDemo';
 import { BasicDrawerDemo } from './BasicDrawerDemo';
+import { BasicTourDemo } from './BasicTourDemo';
 import { BasicOverlayDemo } from './BasicOverlayDemo';
 import { AsyncCustomOkDemo } from './AsyncCustomOkDemo';
 import { PromiseOverlayDemo } from './PromiseOverlayDemo';
@@ -19,6 +20,7 @@ const App: React.FC = () => {
           <Space vertical size="large">
             <BasicModalDemo />
             <BasicDrawerDemo />
+            <BasicTourDemo />
             <BasicOverlayDemo />
             <AsyncCustomOkDemo />
             <PromiseOverlayDemo />

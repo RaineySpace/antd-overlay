@@ -7,11 +7,12 @@
     {
       "name": "AntdOverlayProvider",
       "kind": "component",
-      "signature": "AntdOverlayProvider(props: { children; defaultModalProps?; defaultDrawerProps? })",
+      "signature": "AntdOverlayProvider(props: { children; defaultModalProps?; defaultDrawerProps?; defaultTourProps? })",
       "params": [
         { "name": "children", "required": true, "type": "React.ReactNode" },
         { "name": "defaultModalProps", "required": false, "type": "Partial<ModalProps>" },
-        { "name": "defaultDrawerProps", "required": false, "type": "Partial<DrawerProps>" }
+        { "name": "defaultDrawerProps", "required": false, "type": "Partial<DrawerProps>" },
+        { "name": "defaultTourProps", "required": false, "type": "Partial<TourProps>" }
       ],
       "returns": "JSX.Element",
       "preconditions": [],
@@ -91,6 +92,42 @@
       "recommendedDoc": "docs/ai/constraints.md"
     },
     {
+      "name": "useTour",
+      "kind": "hook",
+      "signature": "useTour<T>(Component, options?) => [openTour, holder]",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomTourProps>" },
+        { "name": "options", "required": false, "type": "UseTourOptions<T>" }
+      ],
+      "returns": "[OverlayOpener<T>, React.ReactNode]",
+      "preconditions": [],
+      "failureScenarios": [
+        {
+          "code": "INVALID_OVERLAY_CONTRACT",
+          "when": "传入组件未正确消费 open/customClose 导致行为异常"
+        }
+      ],
+      "recommendedDoc": "docs/ai/quick-reference.md"
+    },
+    {
+      "name": "useGlobalTour",
+      "kind": "hook",
+      "signature": "useGlobalTour<T>(Component, options?) => openTour",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomTourProps>" },
+        { "name": "options", "required": false, "type": "UseTourOptions<T>" }
+      ],
+      "returns": "OverlayOpener<T>",
+      "preconditions": ["必须在 AntdOverlayProvider 作用域中调用"],
+      "failureScenarios": [
+        {
+          "code": "PROVIDER_REQUIRED",
+          "when": "在 AntdOverlayProvider 外部调用 useGlobalTour"
+        }
+      ],
+      "recommendedDoc": "docs/ai/constraints.md"
+    },
+    {
       "name": "useOverlay",
       "kind": "hook",
       "signature": "useOverlay<T>(Component, options?) => [openOverlay, holder]",
@@ -141,6 +178,18 @@
         { "name": "Component", "required": true, "type": "React.FC<T extends CustomDrawerProps>" }
       ],
       "returns": "{ useDrawer(options?), useGlobalDrawer(options?) }",
+      "preconditions": [],
+      "failureScenarios": [],
+      "recommendedDoc": "README.md"
+    },
+    {
+      "name": "generateUseTourHook",
+      "kind": "factory",
+      "signature": "generateUseTourHook<T>(Component) => { useTour, useGlobalTour }",
+      "params": [
+        { "name": "Component", "required": true, "type": "React.FC<T extends CustomTourProps>" }
+      ],
+      "returns": "{ useTour(options?), useGlobalTour(options?) }",
       "preconditions": [],
       "failureScenarios": [],
       "recommendedDoc": "README.md"

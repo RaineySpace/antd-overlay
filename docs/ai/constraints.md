@@ -9,6 +9,7 @@
 - `useGlobalOverlay`
 - `useGlobalModal`
 - `useGlobalDrawer`
+- `useGlobalTour`
 
 以上 Hook 必须在 `AntdOverlayProvider` 作用域内调用。
 
@@ -44,6 +45,12 @@
 
 错误语义码：`CUSTOM_OK_REJECTED`
 
+### Tour
+
+- `useTour` / `useGlobalTour` 默认 `animation: false`，关闭时直接卸载
+- Tour 的 `onClose(current)` 会先执行用户传入的 `onClose`，再执行内部关闭
+- 当前不提供 `usePromiseTour` / `useGlobalPromiseTour` / `generateUsePromiseTourHook`
+
 ### update
 
 - `controller.update(next)` 是浅合并更新，不是深合并
@@ -77,7 +84,7 @@
 
 ## AI 生成代码建议
 
-- 优先生成 `useModal` 或 `useDrawer`，仅在通用组件时使用 `useOverlay`
+- 优先生成 `useModal`、`useDrawer` 或 `useTour`，仅在通用组件时使用 `useOverlay`
 - 业务流程中需要 `await` 用户结果时优先生成 `usePromiseModal` / `usePromiseDrawer`
 - 使用全局 Hook 时必须同时输出 Provider 包裹代码
 - 避免在 `customOk` 内重复手动 `close`，除非明确要覆盖默认关闭时机

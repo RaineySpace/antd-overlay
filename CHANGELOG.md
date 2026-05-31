@@ -1,5 +1,11 @@
 # antd-overlay
 
+## 0.4.0
+
+### Minor Changes
+
+- 新增 Ant Design Tour 的命令式 Hook：`useTour`、`useGlobalTour` 与 `generateUseTourHook`，并支持 `AntdOverlayProvider` 的 `defaultTourProps`。
+
 ## 0.3.0
 
 ### Minor Changes

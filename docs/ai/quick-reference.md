@@ -69,11 +69,47 @@ controller.close();
 
 ## 5) 最小规则清单
 
-- 使用 `useGlobalModal/useGlobalDrawer/useGlobalOverlay` 时，必须存在 `AntdOverlayProvider`
+- 使用 `useGlobalModal/useGlobalDrawer/useGlobalTour/useGlobalOverlay` 时，必须存在 `AntdOverlayProvider`
 - 自定义组件需要消费 `open` 与 `customClose`
 - 覆盖层确认动作优先通过 `customOk` 触发，避免自行关闭与业务状态不同步
 
-## 6) Promise 模式（await customOk 入参）
+## 6) Tour 模式（不含 Promise）
+
+```tsx
+import { Tour } from 'antd';
+import { useTour, CustomTourProps } from 'antd-overlay';
+
+const GuideTour: React.FC<CustomTourProps> = ({ customClose, customOk, ...props }) => {
+  void customClose;
+  void customOk;
+  return <Tour {...props} />;
+};
+
+function Page() {
+  const targetRef = React.useRef<HTMLButtonElement>(null);
+  const [openTour, holder] = useTour(GuideTour);
+
+  return (
+    <>
+      <button
+        ref={targetRef}
+        onClick={() =>
+          openTour({
+            steps: [{ title: 'Guide', description: 'Step content', target: () => targetRef.current }],
+          })
+        }
+      >
+        open
+      </button>
+      {holder}
+    </>
+  );
+}
+```
+
+Tour 没有关闭动画完成回调，`useTour/useGlobalTour` 默认关闭即卸载。不要生成 `usePromiseTour`；当前公共 API 不提供 Promise Tour。
+
+## 7) Promise 模式（await customOk 入参）
 
 适用场景：业务方希望在调用处直接 `await` 拿到用户的确认结果。
 

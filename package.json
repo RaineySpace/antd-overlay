@@ -1,7 +1,7 @@
 {
   "name": "antd-overlay",
-  "version": "0.3.0",
-  "description": "Ant Design Modal/Drawer 命令式调用方案",
+  "version": "0.4.0",
+  "description": "Ant Design Modal/Drawer/Tour 命令式调用方案",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -40,6 +40,7 @@
     "antd",
     "modal",
     "drawer",
+    "tour",
     "overlay",
     "react",
     "hooks",

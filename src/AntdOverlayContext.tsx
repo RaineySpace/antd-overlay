@@ -28,7 +28,7 @@
  * }
  */
 
-import { DrawerProps, ModalProps } from 'antd';
+import { DrawerProps, ModalProps, TourProps } from 'antd';
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 // ============================================================================
@@ -37,6 +37,7 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 
 export type DefaultModalProps = Partial<ModalProps>;
 export type DefaultDrawerProps = Partial<DrawerProps>;
+export type DefaultTourProps = Partial<TourProps>;
 
 /**
  * AntdOverlay Context 的值类型
@@ -56,6 +57,8 @@ interface AntdOverlayContextValue {
   defaultModalProps?: DefaultModalProps;
   /** 默认 Drawer 属性 */
   defaultDrawerProps?: DefaultDrawerProps;
+  /** 默认 Tour 属性 */
+  defaultTourProps?: DefaultTourProps;
 }
 
 // ============================================================================
@@ -78,7 +81,7 @@ const AntdOverlayContext = createContext<AntdOverlayContextValue | null>(null);
  * AntdOverlay 容器提供者组件
  *
  * 用于管理全局覆盖层的挂载点。所有通过 useGlobalOverlay、useGlobalModal、
- * useGlobalDrawer 等 Hook 创建的覆盖层都会被挂载到这个 Provider 下。
+ * useGlobalDrawer、useGlobalTour 等 Hook 创建的覆盖层都会被挂载到这个 Provider 下。
  *
  * 渲染结构：
  * ```
@@ -123,20 +126,23 @@ export interface AntdOverlayProviderProps {
   defaultModalProps?: DefaultModalProps;
   /** 默认 Drawer 属性 */
   defaultDrawerProps?: DefaultDrawerProps;
+  /** 默认 Tour 属性 */
+  defaultTourProps?: DefaultTourProps;
 }
-
 
 /**
  * AntdOverlayProvider 组件
  * @param children - 子节点
  * @param defaultModalProps - 默认 Modal 属性
  * @param defaultDrawerProps - 默认 Drawer 属性
+ * @param defaultTourProps - 默认 Tour 属性
  * @returns React.ReactNode
  */
 export function AntdOverlayProvider({
   children,
   defaultModalProps,
   defaultDrawerProps,
+  defaultTourProps,
 }: AntdOverlayProviderProps) {
   // 存储所有已注册的 holder 节点
   const [holders, setHolders] = useState<React.ReactNode[]>([]);
@@ -164,8 +170,15 @@ export function AntdOverlayProvider({
   // 使用 useMemo 优化 Context 值，避免不必要的重渲染
   // 只有当 holders、addHolder 或 removeHolder 变化时才会创建新的值对象
   const value = useMemo(
-    () => ({ holders, addHolder, removeHolder, defaultModalProps, defaultDrawerProps }),
-    [holders, addHolder, removeHolder, defaultModalProps, defaultDrawerProps],
+    () => ({
+      holders,
+      addHolder,
+      removeHolder,
+      defaultModalProps,
+      defaultDrawerProps,
+      defaultTourProps,
+    }),
+    [holders, addHolder, removeHolder, defaultModalProps, defaultDrawerProps, defaultTourProps],
   );
 
   return (

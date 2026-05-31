@@ -1,7 +1,7 @@
 /**
  * @file antd-overlay 入口文件
  * @description
- * Ant Design 覆盖层（Modal/Drawer）的命令式调用方案。
+ * Ant Design 覆盖层（Modal/Drawer/Tour）的命令式调用方案。
  *
  * 本库提供了一套与具体 UI 组件解耦的覆盖层管理方案，支持：
  * - 命令式打开/关闭覆盖层
@@ -94,6 +94,7 @@ export type {
   AntdOverlayProviderProps,
   DefaultDrawerProps,
   DefaultModalProps,
+  DefaultTourProps,
 } from './AntdOverlayContext';
 
 export { AntdOverlayProvider, useAntdOverlayContext } from './AntdOverlayContext';
@@ -127,6 +128,14 @@ export { useModal, useGlobalModal, generateUseModalHook } from './useModal';
 export type { CustomDrawerProps, UseDrawerOptions } from './useDrawer';
 
 export { useDrawer, useGlobalDrawer, generateUseDrawerHook } from './useDrawer';
+
+// ============================================================================
+// Tour 层 - Ant Design Tour 封装
+// ============================================================================
+
+export type { CustomTourProps, UseTourOptions } from './useTour';
+
+export { useTour, useGlobalTour, generateUseTourHook } from './useTour';
 
 // ============================================================================
 // Promise 版 Hook - 命令式 await 取值
