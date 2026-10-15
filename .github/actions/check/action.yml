@@ -1,0 +1,19 @@
+name: 验证发布代码
+description: 检查类型、lint、AI 文档、真实浏览器行为与构建
+runs:
+  using: composite
+  steps:
+    - run: pnpm typecheck
+      shell: bash
+    - run: pnpm lint
+      shell: bash
+    - run: pnpm validate:ai-docs
+      shell: bash
+    - run: pnpm exec playwright install --with-deps chromium
+      shell: bash
+    - run: pnpm test:browser
+      shell: bash
+    - run: pnpm build
+      shell: bash
+    - run: npm pack --dry-run
+      shell: bash

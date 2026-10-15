@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+# 正在发布的运行必须完成；后续 main 提交排队，避免同时发布同一版本。
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+env:
+  npm_config_registry: https://registry.npmjs.org
+
+jobs:
+  prepare:
+    if: github.repository == 'RaineySpace/antd-overlay' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.mode.outputs.mode }}
+      pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/check
+      - name: 确定版本 PR 或发布模式
+        id: mode
+        uses: changesets/action/select-mode@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+      - name: 打包已通过验证的代码
+        if: steps.mode.outputs.mode == 'publish'
+        id: pack
+        uses: changesets/action/pack@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          publish-plan-artifact-id: ${{ steps.mode.outputs.publish-plan-artifact-id }}
+
+  version:
+    needs: prepare
+    if: needs.prepare.outputs.mode == 'version'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: 创建或更新版本 PR
+        uses: changesets/action/version@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          script: pnpm version-packages
+          commit-message: 'chore(release): 更新版本与变更日志'
+          pr-title: 'chore(release): 更新版本与变更日志'
+
+  publish:
+    needs: prepare
+    if: needs.prepare.outputs.mode == 'publish'
+    runs-on: ubuntu-latest
+    environment: npm
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      npm_config_ignore_scripts: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          ignore-scripts: 'true'
+      - name: 通过 npm Trusted Publishing 发布并创建 GitHub Release
+        uses: changesets/action/publish@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          pack-dir-artifact-id: ${{ needs.prepare.outputs.pack-dir-artifact-id }}
