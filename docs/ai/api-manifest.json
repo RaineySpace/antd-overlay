@@ -3,6 +3,7 @@
   "manifestVersion": "1.0.0",
   "docsVersion": "0.3.0",
   "entrypoint": "antd-overlay",
+  "removedSymbols": ["useAntdOverlayContext"],
   "symbols": [
     {
       "name": "AntdOverlayProvider",

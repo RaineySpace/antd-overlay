@@ -54,6 +54,7 @@ const main = async () => {
     fail('api-manifest.json must contain non-empty symbols array');
   }
 
+  // 与 src/index.tsx 中的公共运行时导出同步；内部 Context 不属于公共 API。
   const requiredSymbols = [
     'AntdOverlayProvider',
     'useModal',
@@ -80,9 +81,32 @@ const main = async () => {
   ];
 
   const symbolSet = new Set(manifest.symbols.map((item) => item.name));
+  const entrypoint = await readText('src/index.tsx');
+  const exportedSymbols = new Set(
+    [...entrypoint.matchAll(/^export\s*\{([^}]+)\}\s*from/gm)].flatMap((match) =>
+      match[1]
+        .split(',')
+        .map((name) => name.trim())
+        .filter(Boolean),
+    ),
+  );
   for (const symbol of requiredSymbols) {
+    if (!exportedSymbols.has(symbol)) {
+      fail(`requiredSymbols contains non-public symbol: ${symbol}`);
+    }
     if (!symbolSet.has(symbol)) {
       fail(`api-manifest.json missing symbol: ${symbol}`);
+    }
+  }
+
+  for (const symbol of exportedSymbols) {
+    if (!requiredSymbols.includes(symbol)) {
+      fail(`Public export missing from requiredSymbols: ${symbol}`);
+    }
+  }
+  for (const symbol of manifest.removedSymbols ?? []) {
+    if (exportedSymbols.has(symbol) || symbolSet.has(symbol)) {
+      fail(`Removed symbol must not be public or listed in symbols: ${symbol}`);
     }
   }
 

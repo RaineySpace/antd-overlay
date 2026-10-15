@@ -19,15 +19,15 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 - `pnpm validate:ai-docs` — 执行 `scripts/validate-ai-docs.mjs`。修改任何 `docs/ai/*` 或新增/删除导出符号时**必须通过**（详见下文 “AI 文档契约”）。
 - `pnpm changeset` → `pnpm version-packages` → `pnpm release` — 通过 Changesets 走发版流程；`prepublishOnly` 会执行 `pnpm build`。
 
-仓库未配置测试运行器；验证手段为 `typecheck` + `lint` + 手动跑 demo。
+仓库未配置独立测试运行器；验证手段为 `typecheck` + `lint` + 浏览器回归。启动 `pnpm dev:demo` 后访问 `/tests/browser.html`，验证长列表注册数量、重渲染、关闭动画与 Promise 语义。
 
 ## 架构
 
 自下而上分三层：
 
-1. **`src/AntdOverlayContext.tsx`** — `AntdOverlayProvider` 持有 `holders: ReactNode[]` 数组以及 `addHolder` / `removeHolder`。先渲染 children，再统一渲染所有 holders。同时存放 `defaultModalProps` / `defaultDrawerProps`，供 Modal/Drawer 适配器消费。`useAntdOverlayContext()` 在 Provider 外部返回 `null`，全局 Hook 在此情况下抛出 `PROVIDER_REQUIRED` 错误。
+1. **`src/AntdOverlayContext.tsx`** — `AntdOverlayProvider` 在内部维护 `holders: ReactNode[]`，先渲染 children，再统一渲染已注册的 holders。唯一的内部 Context 只提供稳定的 `addHolder` / `removeHolder` 和默认 Modal/Drawer/Tour 配置，不包含 holders。内部 `useAntdOverlayContext()` 在 Provider 外返回 `null`，全局 Hook 据此抛出 `PROVIDER_REQUIRED` 错误。Context 及其辅助 Hook 仅供内部使用，不从包入口导出。
 
-2. **`src/useOverlay.tsx`** — 核心状态机。两个相互独立的状态位：`open`（驱动显隐动画）与 `renderEnable`（组件是否挂载）。`animation: true` 时关闭流程为先把 `open=false`，等适配器回调 `onAnimationEnd` 后再卸载；`animation: false` 时直接卸载。该 Hook 与具体 UI 组件解耦，依赖 `propsAdapter(props, state)` 把内部状态桥接到实际组件 API。`wrapCustomOk`（已导出的辅助函数）实现“仅成功时关闭”的语义：同步 return → 关闭；Promise resolve → resolve 后关闭；throw / reject → 保持打开并将错误透传。
+2. **`src/useOverlay.tsx`** — 内部 `useOverlayState` 是局部与全局 Hook 共用的状态机；全局 Hook 仅在 `renderEnable=true` 时注册 holder。两个相互独立的状态位：`open`（驱动显隐动画）与 `renderEnable`（组件是否挂载）。`animation: true` 时关闭流程为先把 `open=false`，等适配器回调 `onAnimationEnd` 后再卸载；`animation: false` 时直接卸载。该 Hook 与具体 UI 组件解耦，依赖 `propsAdapter(props, state)` 把内部状态桥接到实际组件 API。`wrapCustomOk`（已导出的辅助函数）实现“仅成功时关闭”的语义：同步 return → 关闭；Promise resolve → resolve 后关闭；throw / reject → 保持打开并将错误透传。
 
 3. **`src/useModal.tsx` / `src/useDrawer.tsx`** — 在 `useOverlay` 上的薄封装，固化对应的 `propsAdapter`：
    - Modal 适配器把 `afterClose` → `onAnimationEnd`。
@@ -41,7 +41,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ### 编辑时的关键不变量
 
-- **Holder 引用必须稳定。** `removeHolder` 用引用相等（`h !== holder`）来过滤。不要破坏 `useOverlay.contextHolder` 的 `useMemo` 依赖列表 —— 每次渲染都换新引用会导致 holders 不停被重复注册。
+- **Holder 引用必须稳定。** `removeHolder` 用引用相等（`h !== holder`）来过滤。不要破坏 `useOverlayState.contextHolder` 的 `useMemo` 依赖列表 —— 每次渲染都换新引用会导致 holders 不停被重复注册。
 - **`open` 与 `renderEnable` 是有意分离的。** 不要合并它们，否则会破坏关闭动画。
 - **Props 合并规则是浅合并且顺序固定**：`defaultProps`（或 `options` 顶层字段，顶层优先）< 之前已存的 props < 本次 `open()` / `update()` 的入参。这是文档化行为（`UPDATE_SHALLOW_MERGE`），不要改成深合并。
 - **`wrapCustomOk` 的关闭时机是文档化行为。** Promise reject 与同步 throw 必须保持覆盖层打开并把错误重新抛出 —— README、AI 文档以及 `AsyncCustomOkDemo` 都依赖该行为。

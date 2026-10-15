@@ -6,8 +6,8 @@
  *
  * 工作原理：
  * 1. AntdOverlayProvider 维护一个 holders 数组
- * 2. useGlobalOverlay 通过 useAntdOverlayContext 获取注册方法
- * 3. 覆盖层的 contextHolder 被添加到 holders 数组
+ * 2. 内部 Hook 通过独立的稳定 Context 获取注册方法和默认配置
+ * 3. useGlobalOverlay 仅在 renderEnable=true 时注册 contextHolder，关闭动画结束后移除
  * 4. Provider 在子节点之后统一渲染所有 holders
  *
  * 这种设计的优势：
@@ -40,15 +40,12 @@ export type DefaultDrawerProps = Partial<DrawerProps>;
 export type DefaultTourProps = Partial<TourProps>;
 
 /**
- * AntdOverlay Context 的值类型
+ * 内部 Context 的注册方法和默认配置
  *
- * @property holders - 当前所有已注册的覆盖层 holder 节点
  * @property addHolder - 注册一个新的 holder 到全局容器
  * @property removeHolder - 从全局容器移除一个已注册的 holder
  */
 interface AntdOverlayContextValue {
-  /** 所有已注册的 holder 节点列表 */
-  holders: React.ReactNode[];
   /** 添加 holder 到全局容器 */
   addHolder: (holder: React.ReactNode) => void;
   /** 从全局容器移除 holder */
@@ -65,13 +62,8 @@ interface AntdOverlayContextValue {
 // Context 定义
 // ============================================================================
 
-/**
- * AntdOverlay Context
- *
- * 默认值为 null，使用时必须在 AntdOverlayProvider 内部。
- * 如果在 Provider 外部调用 useAntdOverlayContext，会抛出明确的错误提示。
- */
-const AntdOverlayContext = createContext<AntdOverlayContextValue | null>(null);
+/** @internal 仅共享注册方法和默认配置，不暴露 holders，不从包入口导出。 */
+export const AntdOverlayContext = createContext<AntdOverlayContextValue | null>(null);
 
 // ============================================================================
 // Provider 组件
@@ -167,22 +159,20 @@ export function AntdOverlayProvider({
     setHolders((prev) => prev.filter((h) => h !== holder));
   }, []);
 
-  // 使用 useMemo 优化 Context 值，避免不必要的重渲染
-  // 只有当 holders、addHolder 或 removeHolder 变化时才会创建新的值对象
-  const value = useMemo(
+  // holders 更新时保持内部 Context 稳定；默认配置变化仍应通知所有相关 Hook。
+  const contextValue = useMemo(
     () => ({
-      holders,
       addHolder,
       removeHolder,
       defaultModalProps,
       defaultDrawerProps,
       defaultTourProps,
     }),
-    [holders, addHolder, removeHolder, defaultModalProps, defaultDrawerProps, defaultTourProps],
+    [addHolder, removeHolder, defaultModalProps, defaultDrawerProps, defaultTourProps],
   );
 
   return (
-    <AntdOverlayContext.Provider value={value}>
+    <AntdOverlayContext.Provider value={contextValue}>
       {children}
       {/* 在 children 之后渲染所有全局覆盖层 */}
       {holders}
@@ -194,37 +184,7 @@ export function AntdOverlayProvider({
 // Hook
 // ============================================================================
 
-/**
- * 获取 AntdOverlay Context 的 Hook
- *
- * 返回全局容器的注册和注销方法，供 useGlobalOverlay 系列 Hook 内部使用。
- *
- * 注意事项：
- * - 必须在 AntdOverlayProvider 内部使用
- * - 如果在 Provider 外部调用，会抛出明确的错误
- * - 主要供库内部使用，一般不需要在业务代码中直接调用
- *
- * @returns AntdOverlayContextValue 包含 holders、addHolder、removeHolder
- * @throws Error 如果不在 AntdOverlayProvider 内部使用
- *
- * @example
- * // 库内部使用示例（useGlobalOverlay 的实现）
- * function useGlobalOverlay(Component, options) {
- *   const context = useAntdOverlayContext();
- *   if (!context) {
- *     throw new Error('useGlobalOverlay must be used within an AntdOverlayProvider. Please wrap your application with <AntdOverlayProvider>.');
- *   }
- *   const { addHolder, removeHolder } = context;
- *   const [open, holder] = useOverlay(Component, options);
- *
- *   useEffect(() => {
- *     addHolder(holder);
- *     return () => removeHolder(holder);
- *   }, [holder]);
- *
- *   return open;
- * }
- */
+/** @internal 只读取注册方法与默认配置，不订阅 holders；不从包入口导出。 */
 export function useAntdOverlayContext() {
   return useContext(AntdOverlayContext);
 }

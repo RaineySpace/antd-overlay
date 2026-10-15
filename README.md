@@ -179,9 +179,19 @@ function GlobalUsage() {
 </AntdOverlayProvider>
 ```
 
-#### `useAntdOverlayContext()`
+#### 长列表与按需挂载
 
-读取 Context（含 `holders`、`addHolder`、`removeHolder` 及默认 Modal/Drawer/Tour 配置）。**必须在 `AntdOverlayProvider` 内使用**；一般供扩展或库内集成，业务侧很少直接使用。
+每个 Item 可以独立调用 `useGlobalModal`、`useGlobalDrawer`、`useGlobalTour`、`useGlobalOverlay` 或对应的 Promise Hook。只调用 Hook 而不执行 opener 时，不挂载覆盖层组件，也不向 Provider 注册空 holder。每次 Hook 调用仍持有独立状态，不会共享弹窗实例。
+
+库内部 Hook 只订阅注册方法与默认配置，holder 的增加、更新或移除不会通过 Context 强制重渲染其他调用方；Provider 默认配置变化仍会正常传递。父组件重渲染、业务 props 变化和调用方自身状态更新，仍遵循 React 的正常渲染规则。
+
+关闭动画由 `renderEnable` 管理：`open=false` 时保留 holder，收到 Modal `afterClose` / Drawer `afterOpenChange(false)` 后再移除。`animation: false` 时直接移除，Item 卸载时也会清理对应 holder。Promise 仍在确认、取消等决策时结算，不等待动画。
+
+这些优化减少了全局注册和 Context 更新的开销；大量实际挂载的 Item 仍有各自的 Hook 与 DOM 成本，超长列表可结合虚拟列表使用。
+
+Context 与注册方法是内部实现，不通过包入口导出。业务通过 `AntdOverlayProvider` 配置默认属性，通过各系列 Hook 管理覆盖层。
+
+浏览器回归：运行 `pnpm dev:demo`，访问 `/tests/browser.html`。页面自动验证 7 种全局 Hook 各 10,000 个 Item 的注册数量与无关 Item 渲染次数，以及 StrictMode、公共导出边界、默认配置、关闭动画回调和 Promise 语义。结果全部通过时，`#results` 的 `data-status` 为 `passed`；该验证统计行为，不把本机耗时作为性能保证。
 
 ### Modal Hooks
 

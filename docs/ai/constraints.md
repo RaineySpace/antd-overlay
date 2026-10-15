@@ -37,6 +37,16 @@
 
 ## 行为语义约束
 
+### 全局 holder 生命周期与 Context
+
+- 全局 Hook（包括 Promise 版本）未打开时不向 Provider 注册空 holder，每次调用仍拥有独立状态
+- 以 `renderEnable` 决定注册；`open=false` 的关闭动画期间保留 holder，动画结束后再移除
+- `animation: false` 或调用方卸载时移除对应 holder
+- 内部 Hook 只订阅注册方法和默认配置，holder 变化不通过 Context 强制重渲染其他调用方；默认配置变化仍会通知调用方
+- `holders` 仅由 Provider 内部维护，不包含尚未打开或已完成关闭的全局 Hook 的空占位节点
+- `useAntdOverlayContext` 仅供内部使用；Context、注册方法及内部辅助 Hook 均不通过包入口导出，不要在业务代码中直接访问
+- 优化不消除每个 Item 的 Hook、DOM 或业务重渲染成本
+
 ### customOk
 
 - 同步成功返回：自动关闭

@@ -97,7 +97,7 @@ export type {
   DefaultTourProps,
 } from './AntdOverlayContext';
 
-export { AntdOverlayProvider, useAntdOverlayContext } from './AntdOverlayContext';
+export { AntdOverlayProvider } from './AntdOverlayContext';
 
 // ============================================================================
 // 核心层 - 通用覆盖层管理

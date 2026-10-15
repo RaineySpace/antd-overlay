@@ -311,6 +311,15 @@ export function useOverlay<T extends CustomOverlayProps>(
   OverlayComponent: React.FC<T>,
   options: UseOverlayOptions<T> = {},
 ): [OverlayOpener<T>, React.ReactNode] {
+  const { openOverlay, contextHolder } = useOverlayState(OverlayComponent, options);
+  return [openOverlay, contextHolder];
+}
+
+/** @internal 共享状态机，向全局 Hook 提供挂载状态，保持公开 Hook 的二元组不变。 */
+function useOverlayState<T extends CustomOverlayProps>(
+  OverlayComponent: React.FC<T>,
+  options: UseOverlayOptions<T> = {},
+) {
   // 解构配置选项：Hook 专用字段 + 其余视为默认 overlay 属性（与 defaultProps 合并，顶层优先）
   const {
     animation = true,
@@ -455,11 +464,14 @@ export function useOverlay<T extends CustomOverlayProps>(
          * 与 defaultProps 合并，传入的 newProps 优先
          */
         update: (newProps: InternalProps<T>) =>
-          setProps((prev) => ({
-            ...defaultPropsRef.current,
-            ...prev,
-            ...newProps,
-          } as InternalProps<T>)),
+          setProps(
+            (prev) =>
+              ({
+                ...defaultPropsRef.current,
+                ...prev,
+                ...newProps,
+              }) as InternalProps<T>,
+          ),
         /**
          * 关闭覆盖层
          */
@@ -469,7 +481,7 @@ export function useOverlay<T extends CustomOverlayProps>(
     [handleClose],
   );
 
-  return [openOverlay, contextHolder];
+  return { openOverlay, contextHolder, renderEnable };
 }
 
 /**
@@ -525,21 +537,25 @@ export function useGlobalOverlay<T extends CustomOverlayProps>(
   if (!context) {
     throw new Error(
       'useGlobalOverlay must be used within an AntdOverlayProvider. ' +
-      'Please wrap your application with <AntdOverlayProvider>.'
+        'Please wrap your application with <AntdOverlayProvider>.',
     );
   }
 
   const { addHolder, removeHolder } = context;
 
   // 使用基础 useOverlay 获取功能
-  const [openOverlay, contextHolder] = useOverlay<T>(OverlayComponent, options);
+  const { openOverlay, contextHolder, renderEnable } = useOverlayState<T>(
+    OverlayComponent,
+    options,
+  );
 
-  // 将 contextHolder 注册到全局容器
+  // 未打开时不注册空 holder；关闭动画期间 renderEnable 仍为 true，保留组件。
   useEffect(() => {
+    if (!renderEnable) return;
     addHolder(contextHolder);
     // 清理函数：组件卸载时从全局容器移除
     return () => removeHolder(contextHolder);
-  }, [contextHolder, addHolder, removeHolder]);
+  }, [renderEnable, contextHolder, addHolder, removeHolder]);
 
   // 仅返回 openOverlay，holder 已自动挂载
   return openOverlay;

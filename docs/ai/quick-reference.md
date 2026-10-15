@@ -6,6 +6,8 @@
 
 前置条件：应用根节点已包裹 `AntdOverlayProvider`。
 
+每次全局 Hook 调用是独立实例；未执行 opener 时不注册 holder。holder 仅在打开及关闭动画期间存在，其变化不会通过内部 Context 强制重渲染其他调用方；默认配置变化仍会传递。Context 与注册方法是内部实现，不通过包入口导出。
+
 ```tsx
 import { AntdOverlayProvider, useGlobalModal, CustomModalProps } from 'antd-overlay';
 import { Modal } from 'antd';

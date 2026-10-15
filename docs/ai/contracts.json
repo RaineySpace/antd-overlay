@@ -6,11 +6,17 @@
     "imperative-open-close-overlay",
     "update-overlay-props-via-controller",
     "global-overlay-hosting-via-provider",
+    "on-demand-global-holder-registration",
+    "isolated-global-holder-context-updates",
     "async-custom-ok-auto-close-on-resolve",
     "imperative-tour-open-close",
     "imperative-await-overlay-result-via-promise"
   ],
   "constraints": [
+    {
+      "code": "GLOBAL_HOLDER_LIFECYCLE",
+      "rule": "全局 Hook（含 Promise 版本）按 renderEnable 注册 holder：未打开不注册，关闭动画期间保留，动画结束或调用方卸载后移除；Context 只共享注册方法和默认配置，holders 仅由 Provider 内部维护；不提供公开 Context Hook"
+    },
     {
       "code": "PROVIDER_REQUIRED",
       "rule": "useGlobalModal/useGlobalDrawer/useGlobalTour/useGlobalOverlay 必须在 AntdOverlayProvider 作用域内调用"
