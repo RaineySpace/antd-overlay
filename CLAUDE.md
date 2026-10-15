@@ -17,9 +17,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm lint` / `pnpm lint:fix` — 对 `src/` 执行 ESLint。
 - `pnpm format` / `pnpm format:check` — Prettier。
 - `pnpm validate:ai-docs` — 执行 `scripts/validate-ai-docs.mjs`。修改任何 `docs/ai/*` 或新增/删除导出符号时**必须通过**（详见下文 “AI 文档契约”）。
-- `pnpm changeset` → `pnpm version-packages` → `pnpm release` — 通过 Changesets 走发版流程；`prepublishOnly` 会执行 `pnpm build`。
+- `pnpm test:browser` — 自动启动 Vite，用 Playwright Chromium 执行现有浏览器回归；首次运行先执行 `pnpm exec playwright install chromium`。
+- `pnpm changeset` — 为功能变更生成 changeset；合入 `main` 后由 GitHub Actions 创建版本 PR，合并版本 PR 后经 npm Trusted Publishing 发布。`pnpm version-packages` 由版本 PR job 执行，不要手动改版本号。配置与故障恢复见 README 的“版本发布”。
 
-仓库未配置独立测试运行器；验证手段为 `typecheck` + `lint` + 浏览器回归。启动 `pnpm dev:demo` 后访问 `/tests/browser.html`，验证长列表注册数量、重渲染、关闭动画与 Promise 语义。
+仓库未配置独立测试运行器；验证手段为 `typecheck` + `lint` + `validate:ai-docs` + `test:browser` + `build`。浏览器断言复用 `/tests/browser.html`，覆盖长列表注册数量、重渲染、关闭动画与 Promise 语义；仍可通过 `pnpm dev:demo` 手动访问。CI 和发布准备 job 执行相同检查。
 
 ## 架构
 

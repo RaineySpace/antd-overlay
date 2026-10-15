@@ -41,9 +41,34 @@ pnpm install
 pnpm dev:demo    # 启动 Vite 演示（demo/：Modal / Drawer / Tour / useOverlay）
 pnpm build       # 使用 tsup 构建 dist
 pnpm typecheck   # TypeScript 检查
+pnpm exec playwright install chromium # 首次运行浏览器回归前安装
+pnpm test:browser # 自动启动 Vite 并运行真实 Chromium 回归
 ```
 
 演示入口将 `ConfigProvider` 与 `AntdOverlayProvider` 组合使用，与线上应用推荐结构一致。
+
+## 版本发布
+
+使用 Node.js 24 和 `package.json#packageManager` 固定的 pnpm。发布流程为 **Changesets → 版本 PR → GitHub Actions → npm Trusted Publishing**。
+
+1. 修改功能或修复问题后运行 `pnpm changeset`，选择版本类型并填写中文变更说明，将生成的 `.changeset/*.md` 与代码一起提交。
+2. 变更合入 `main` 后，`Release` workflow 检查类型、lint、AI 文档、浏览器回归和构建，再创建或更新 `chore(release): 更新版本与变更日志` PR。
+3. 检查版本 PR 中的版本号和 `CHANGELOG.md`，通过 CI 后合并。若 GitHub 对机器人 PR 显示 **Approve workflows to run**，维护者需先批准该次 CI。
+4. 合并触发发布：验证和打包在无 npm 发布权限的 job 中完成，`publish` job 使用 OIDC 发布这份 tarball，并生成 Git Tag 与 GitHub Release。不要手动改版本号或本地重复发布。
+
+首次接入使用已通过 `pnpm version-packages` 生成的 `0.5.0` 版本提交，因此直接进入发布步骤。没有 changeset 且当前版本已经存在于 npm 时，workflow 不再发布。
+
+### 仓库接入配置
+
+- GitHub `Settings → Actions → General`：允许 GitHub Actions 创建 PR；默认 workflow 权限仍为只读。
+- GitHub Environment `npm`：仅允许 `main` 分支部署；发布 job 使用此环境。
+- npm 包 `Settings → Trusted Publisher → GitHub Actions`：Owner 为 `RaineySpace`，Repository 为 `antd-overlay`，Workflow filename 为 `release.yml`，Environment 为 `npm`，Allowed actions 勾选 **npm publish**。
+- 仅发布 job 获得 `id-token: write`。无需 `NPM_TOKEN` 或 `NODE_AUTH_TOKEN`，公共仓库发布会自动附带 provenance。不要给 PR job 添加发布凭据。
+- 复用到其他仓库时，修改 `release.yml` 的仓库限制、包的 `repository.url`，并为对应 npm 包单独绑定 Trusted Publisher；工作流文件名和环境名称必须与 npm 配置一致。
+
+发布失败后先查看 `Release` 日志。未发布成功可在同一次运行中选择 **Re-run failed jobs**；不要为重试修改版本号。若 npm 已发布但 Git Tag 或 GitHub Release 创建失败，先核对 npm 上的版本和来源，再补齐缺失的 GitHub 记录。排除故障后也可在 `main` 上手动运行 `Release`，它会重新计算待发布版本。
+
+参考：[Changesets 自动发布](https://changesets.dev/guide/automating)、[npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/)。
 
 ## 快速开始
 
